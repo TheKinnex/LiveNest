@@ -24,6 +24,10 @@ const commentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isDelete: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const Comment = mongoose.model('Comment', commentSchema);
