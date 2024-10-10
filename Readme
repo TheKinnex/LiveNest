@@ -1,0 +1,457 @@
+Proyecto final Curso XV:
+
+Proyecto de Desarrollo: Red Social con Subscripciones
+
+Duracion 6 semanas
+
+Enunciado:
+
+Tu objetivo es desarrollar una red social moderna que permita a los usuarios interactuar entre sí mediante publicaciones, comentarios, y mensajes privados. Además, implementarás un sistema de suscripciones que ofrecerá beneficios adicionales a los usuarios que opten por un plan de pago.
+
+Requisitos Principales:
+
+1. Registro y Autenticación de Usuarios:
+   - Los usuarios deben poder registrarse mediante correo electrónico y contraseña.
+   - Implementar autenticación segura usando JWT (JSON Web Token).
+   - Validar la entrada de datos para el registro y el inicio de sesión.
+
+2. Perfiles de Usuarios:
+   - Los usuarios podrán personalizar su perfil con una foto, biografía, y detalles de contacto.
+   - Mostrar la lista de seguidores y seguidos.
+
+3. Publicaciones:
+   - Los usuarios podrán crear publicaciones de texto, imágenes, o videos.
+   - Los usuarios podrán interactuar con las publicaciones mediante likes y comentarios.
+
+4. Mensajes Directos:
+   - Implementar un sistema de mensajería privada entre usuarios.
+
+5. Sistema de Subscripciones:
+   - Crear planes de suscripción con diferentes niveles de beneficios.
+   - Usuarios suscritos podrán tener acceso a características premium como:
+     - Acceso a contenido exclusivo.
+     - Mayor capacidad para subir imágenes/videos.
+     - Mensajería prioritaria.
+   - Integrar pasarela de pago como  PayPal para gestionar las suscripciones.
+
+6. Panel de Administración:
+   - El administrador podrá gestionar los usuarios y revisar/reportar contenido inapropiado.
+
+7. Seguridad:
+   - Implementar validación en todos los inputs.
+   - Asegurar que solo los usuarios suscritos puedan acceder a las funciones premium.
+   - Proteger la API con autenticación y autorización adecuadas.
+
+Instrucciones Específicas:
+
+1. Tecnologías Recomendadas:
+   - Frontend: React.js, Next.js.
+   - Backend: Node.js con Express.
+   - Base de Datos: MongoDB con Mongoose
+   - Autenticación: JWT y Bcrypt.
+   - Pasarela de Pagos: PayPal.
+
+2. Pasos para el Desarrollo:
+   - Diseñar vistas del software en Figma, tanto diseño desktop como diseño mobile
+   - Crear un sistema básico de autenticación de usuarios.
+   - Implementar los modelos de base de datos para usuarios, publicaciones, suscripciones, comentario, mensaje directo, transaccion.
+   - Diseñar y desarrollar la interfaz de usuario para el feed, perfiles, y mensajería (Frontend).
+   - Configurar el sistema de pagos y suscripciones con una pasarela de pago.
+   - Probar todas las características, asegurando la seguridad y estabilidad del sistema.
+
+4. Vistas:
+
+Vistas del Frontend:
+
+Página de Inicio:
+
+Ruta: /
+Mostrar información básica de la plataforma.
+Mostrar botones para iniciar sesión o registrarse.
+Incluir un banner destacando las suscripciones premium.
+Registro y Autenticación:
+
+Ruta de Registro: /register
+
+Formulario de registro con campos: nombre de usuario, correo electrónico, contraseña, confirmación de contraseña.
+
+Validaciones y mensajes de error.
+
+Ruta de Inicio de Sesión: /login
+
+Formulario de login con campos: correo electrónico y contraseña.
+
+Opción para recuperación de contraseña.
+
+Recuperar Contraseña:
+
+Ruta: /forgot-password
+Formulario para solicitar recuperación de contraseña.
+Ruta: /reset-password/:token
+Formulario para restablecer contraseña mediante un token enviado por correo.
+Página del Perfil de Usuario:
+
+Ruta: /profile/:userId
+Vista del perfil del usuario con foto, bio, publicaciones, seguidores y seguidos.
+Opción de editar perfil propio.
+Opción de seguir o dejar de seguir a otros usuarios.
+Página de Edición de Perfil:
+
+Ruta: /profile/edit
+Formulario para editar información personal (foto, bio, etc.).
+Feed de Publicaciones:
+
+Ruta: /feed
+Mostrar publicaciones de usuarios seguidos.
+Funcionalidades: dar "me gusta", comentar, reportar contenido, eliminar publicaciones propias.
+Publicación Individual:
+
+Ruta: /post/:postId
+Vista detallada de una publicación con todos los comentarios.
+Formulario para añadir comentarios.
+Sistema de Mensajes Directos:
+
+Ruta: /messages
+Listado de conversaciones con otros usuarios.
+Ruta: /messages/:userId
+Chat en tiempo real con otro usuario.
+Página de Planes de Subscripción:
+
+Ruta: /subscriptions
+Mostrar diferentes planes de suscripción (free, premium, enterprise) con detalles y precios.
+Opción de suscribirse a un plan y realizar el pago.
+Página de Gestión de Pagos:
+
+Ruta: /payments/history
+
+Ver historial de transacciones del usuario.
+
+Ruta: /payments/subscribe
+
+Formulario de suscripción y selección de métodos de pago.
+
+Ruta: /admin/dashboard
+
+Vista principal del panel de administración con estadísticas básicas.
+
+Ruta: /admin/users
+
+Listado de usuarios registrados con opción para bloquear, editar o eliminar.
+
+Ruta: /admin/posts
+
+Vista de todas las publicaciones con opción para revisar reportes y eliminar contenido inapropiado.
+
+Ruta: /admin/reports
+
+Generación de reportes y estadísticas.
+
+Vistas del Backend:
+
+Gestión de Usuarios:
+
+Rutas:
+GET /admin/users → Listar todos los usuarios.
+PATCH /admin/users/:userId → Editar usuarios (por admin).
+DELETE /admin/users/:userId → Eliminar o bloquear usuarios.
+
+Autenticación:
+
+Rutas:
+POST /auth/register → Crear una nueva cuenta de usuario.
+POST /auth/login → Iniciar sesión.
+POST /auth/forgot-password → Enviar correo para recuperar contraseña.
+POST /auth/reset-password → Restablecer la contraseña.
+
+Gestión de Publicaciones:
+
+Rutas:
+GET /posts → Obtener todas las publicaciones (Feed).
+POST /posts → Crear una nueva publicación.
+PATCH /posts/:postId → Editar publicación.
+DELETE /posts/:postId → Eliminar publicación.
+
+Comentarios:
+
+Rutas:
+POST /posts/:postId/comment → Comentar en una publicación.
+DELETE /comments/:commentId → Eliminar comentario.
+PATCH /comments/:commentId → Editar comentario.
+
+Mensajería:
+
+Rutas:
+GET /messages → Obtener todas las conversaciones del usuario.
+POST /messages → Enviar mensaje directo.
+
+Gestión de Subscripciones:
+
+Rutas:
+GET /subscriptions → Listar planes de suscripción.
+POST /subscriptions/subscribe → Crear una suscripción.
+PATCH /subscriptions/cancel → Cancelar suscripción activa.
+
+Gestión de Pagos:
+
+Rutas:
+POST /payments → Crear una transacción (proceso de pago).
+GET /payments/history → Obtener historial de pagos.
+
+
+
+Rutas:
+GET /admin/posts/reports → Ver reportes de publicaciones.
+DELETE /admin/posts/:postId → Eliminar contenido inapropiado.
+
+Analítica y Reportes:
+
+Rutas:
+GET /admin/reports → Generar reportes sobre la actividad en la plataforma.
+
+3. Extras Opcionales:
+   - Implementar una sección de búsqueda para encontrar usuarios.
+   - Agregar integración con redes sociales como Facebook o Google para el inicio de sesión.
+   - Crear un sistema de recomendaciones basado en el contenido que sigue el usuario.
+
+Un Usuario debe tener:
+
+Propiedades:
+username: String, obligatorio, único, al menos 3 caracteres.
+email: String, obligatorio, único, validado como un correo electrónico.
+password: String, obligatorio, almacenado de forma segura (encriptado con bcrypt).
+profilePicture: String, URL opcional para la imagen de perfil.
+bio: String, opcional, descripción breve del usuario (hasta 150 caracteres).
+followers: Array de ObjectId (referencia al modelo User), lista de seguidores.
+following: Array de ObjectId (referencia al modelo User), lista de usuarios que sigue.
+posts: Array de ObjectId (referencia al modelo Post), lista de publicaciones creadas por el usuario.
+role: String, valores posibles: 'user', 'admin'. Por defecto 'user'.
+subscription: ObjectId (referencia al modelo Subscription), detalles de la suscripción del usuario.
+createdAt: Date, fecha de creación del perfil.
+updatedAt: Date, fecha de la última actualización del perfil.
+
+Una publicacion debe tener:
+
+Propiedades:
+author: ObjectId, referencia al modelo User, obligatorio.
+content: String, opcional si hay imágenes o videos, texto de la publicación.
+media: Array de String, URLs de imágenes o videos subidos en la publicación.
+likes: Array de ObjectId (referencia a User), lista de usuarios que le han dado "me gusta" a la publicación.
+comments: Array de ObjectId (referencia al modelo Comment), lista de comentarios asociados a la publicación.
+createdAt: Date, fecha de creación de la publicación.
+updatedAt: Date, fecha de la última actualización de la publicación.
+
+Un comentario debe tener:
+
+Propiedades:
+post: ObjectId, referencia al modelo Post, obligatorio.
+author: ObjectId, referencia al modelo User, obligatorio.
+content: String, obligatorio, contenido del comentario.
+createdAt: Date, fecha de creación del comentario.
+updatedAt: Date, fecha de la última actualización del comentario.
+
+Un mensaje directo debe tener:
+
+Propiedades:
+sender: ObjectId, referencia al modelo User, obligatorio.
+receiver: ObjectId, referencia al modelo User, obligatorio.
+content: String, obligatorio, el texto del mensaje.
+createdAt: Date, fecha de creación del mensaje.
+read: Boolean, indica si el mensaje ha sido leído, por defecto false.
+
+Una Subscripcion debe tener:
+
+Propiedades:
+user: ObjectId, referencia al modelo User, obligatorio.
+plan: String, valores posibles: 'free', 'premium', 'enterprise'.
+price: Number, precio del plan, dependiendo del tipo.
+startDate: Date, fecha de inicio de la suscripción.
+endDate: Date, fecha de finalización de la suscripción (si no es una suscripción activa).
+isActive: Boolean, estado de la suscripción (activa/inactiva).
+
+Una transaccion debe tener:
+
+Propiedades:
+user: ObjectId, referencia al modelo User, obligatorio, usuario que realiza la transacción.
+amount: Number, monto de la transacción.
+currency: String, la moneda usada para la transacción, como 'USD'.
+status: String, estado de la transacción, valores posibles: 'pending', 'completed', 'failed'.
+paymentMethod: String, método de pago usado (PayPal)
+createdAt: Date, fecha de la transacción.
+
+Un usuario puede:
+
+Acciones Permitidas:
+
+Registro y Autenticación:
+
+Crear una cuenta.
+Iniciar sesión y cerrar sesión.
+Recuperar contraseña.
+
+Gestión de Perfil:
+
+Ver y editar el perfil propio (nombre de usuario, bio, foto de perfil).
+Seguir y dejar de seguir a otros usuarios.
+Ver perfiles de otros usuarios.
+
+Publicaciones y Contenidos:
+
+Crear nuevas publicaciones (texto, imagen, video).
+Ver, comentar, y darle "me gusta" a publicaciones de otros usuarios.
+Eliminar o editar sus propias publicaciones.
+Reportar publicaciones inapropiadas.
+
+Interacciones Sociales:
+
+Enviar y recibir mensajes directos.
+
+Gestión de Subscripciones:
+
+Ver los planes de suscripción disponibles.
+Suscribirse a un plan (premium o enterprise).
+Cancelar una suscripción activa.
+
+Pagos y Transacciones:
+
+Realizar pagos para actualizar su plan de suscripción.
+Ver el historial de transacciones personales.
+
+Seguridad y Privacidad:
+
+Cambiar la contraseña.
+Desactivar o eliminar su cuenta.
+
+Rutas de Acceso:
+
+Autenticación:
+
+POST /auth/register → Registrar una nueva cuenta.
+POST /auth/login → Iniciar sesión.
+POST /auth/forgot-password → Solicitar recuperación de contraseña.
+POST /auth/reset-password → Restablecer la contraseña.
+Perfil:
+
+GET /profile/:userId → Ver perfil propio o de otros usuarios.
+PATCH /profile/:userId → Actualizar perfil propio.
+Publicaciones:
+
+POST /posts → Crear una nueva publicación.
+GET /posts → Ver publicaciones (feed).
+PATCH /posts/:postId → Editar publicación propia.
+DELETE /posts/:postId → Eliminar publicación propia.
+POST /posts/:postId/like → Darle "me gusta" a una publicación.
+POST /posts/:postId/comment → Comentar en una publicación.
+POST /posts/:postId/report → Reportar una publicación.
+Mensajes Directos:
+
+POST /messages → Enviar mensaje directo.
+GET /messages → Ver mensajes directos.
+Subscripciones:
+
+GET /subscriptions → Ver todos los planes de suscripción.
+POST /subscriptions/subscribe → Suscribirse a un plan.
+POST /subscriptions/cancel → Cancelar una suscripción.
+Pagos:
+
+POST /payments → Realizar un pago para una suscripción.
+GET /payments/history → Ver historial de transacciones.
+Notificaciones:
+
+GET /notifications → Ver notificaciones sobre interacciones.
+Seguridad:
+
+PATCH /security/password → Cambiar la contraseña.
+DELETE /security/deactivate-account → Desactivar o eliminar cuenta.
+
+Un administrador puede:
+
+Acciones Permitidas:
+Gestión de Usuarios:
+
+Ver, editar, o eliminar el perfil de cualquier usuario.
+Bloquear o desactivar cuentas de usuarios que violen los términos.
+Asignar roles ('user', 'admin').
+
+Moderación de Contenido:
+
+Ver y gestionar todas las publicaciones.
+Eliminar publicaciones inapropiadas.
+Ver reportes de contenido.
+Gestionar comentarios (eliminar comentarios ofensivos).
+
+Gestión de Subscripciones:
+
+Ver todas las suscripciones activas y el estado de los usuarios.
+Asignar manualmente una suscripción a un usuario.
+Gestión de Transacciones:
+
+Ver el historial de transacciones de cualquier usuario.
+Procesar y revisar pagos fallidos o en disputa.
+Gestión de Notificaciones Globales:
+
+Analítica y Reportes:
+
+Acceder a estadísticas de uso de la plataforma.
+Generar reportes de usuarios activos, ingresos por suscripción, etc.
+
+Rutas de Acceso:
+Gestión de Usuarios:
+
+GET /admin/users → Ver lista de todos los usuarios.
+PATCH /admin/users/:userId → Editar perfil de un usuario.
+DELETE /admin/users/:userId → Eliminar cuenta de un usuario.
+POST /admin/users/:userId/block → Bloquear/desactivar cuenta de un usuario.
+PATCH /admin/users/:userId/role → Cambiar el rol de un usuario.
+Moderación de Publicaciones:
+
+GET /admin/posts → Ver todas las publicaciones.
+DELETE /admin/posts/:postId → Eliminar publicación inapropiada.
+GET /admin/posts/reports → Ver reportes de publicaciones.
+Subscripciones:
+
+GET /admin/subscriptions → Ver todas las suscripciones activas.
+PATCH /admin/subscriptions/:userId → Asignar suscripción manualmente.
+Transacciones:
+
+GET /admin/payments → Ver todas las transacciones.
+PATCH /admin/payments/:paymentId → Revisar o procesar pagos en disputa.
+Notificaciones:
+
+POST /admin/notifications → Enviar notificaciones globales a los usuarios.
+Analítica:
+
+GET /admin/reports → Ver estadísticas de uso y generar reportes.
+
+Tareas a Realizar:
+
+1.Realizar diseño en figma (Desktop y Mobile), de todas las vistas posibles
+2.Crear el repositorio en Github para alojar el proyecto
+3.Creacion del proyecto base de Backend (crear carpetas, instalar dependecias)
+4.Realizar el maquetado de los modelos de usuario, publicacion, comentario, mensajes,subscripcion, transacion
+5.Realizar rutas (Todas) usuario
+6.Realizar rutas (Todas) admin
+7.Realizar rutas (Todas) autenticacion
+8.Realizar rutas (Todas) publicacion
+9.Realizar rutas (Todas) Mensajes
+10.Realizar rutas (Todas) subscripciones
+11.Realizar rutas (Todas) Transacciones
+12.2.Creacion del proyecto base de Frontend (crear carpetas, instalar dependecias)
+13.Crear estructura basica de archivos del frontend
+14.Crear vista de Home(Frontend)(todos los usuarios)
+15.Crear vista de login(Frontend)(todos los usuarios)
+16.Crear vista de Register(Frontend)(todos los usuarios)
+17.Crear vista de Recuperar contraseña(Frontend)(todos los usuarios)
+18.Crear vista de mensajes directos generales(Frontend)(todos los usuarios)
+19.Crear vista de mensajes directos con un usuario(Frontend)(todos los usuarios)
+20.Crear vista de mi perfil(Frontend)(todos los usuarios)
+21.Crear vista de editar mi perfil(Frontend)(todos los usuarios)
+22.Crear vista de subscripciones(Frontend)(todos los usuarios)
+23.Crear vista de ver mis subscripciones(Frontend)(todos los usuarios)
+24.Crear vista de cancelar mis subscripciones(Frontend)(todos los usuarios)
+25.Crear vista de todos los usuarios(Frontend)(admin)
+26.Crear vista de todas las subscripciones(Frontend)(admin)
+27.Crear vista de todos los usuarios bloqueados(Frontend)(admin)
+28.Crear vista de reportes(Frontend)(admin)
+29.Crear vista de todos los post(Frontend)(admin)
+30.Realizar extras(de desearlo)
+31.Realizar Deploy (de desearlo)
