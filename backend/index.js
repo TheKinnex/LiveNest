@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './config/config.js'; // Nota: Agregar extensión .js al final
+import {connectDB} from './config/config.js'; // Nota: Agregar extensión .js al final
 
 dotenv.config();
 
