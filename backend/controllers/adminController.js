@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Post from "../models/Post.js";
+import Report from '../models/Report.js'
 
 // @desc Listar todos los usuarios
 // @route GET /admin/users
@@ -51,6 +52,8 @@ export const deleteUser = async (req, res) => {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
+    
+
     if (action === "block") {
       user.isBlocked = true;
       user.isDeleted = false; // Por si ya estaba marcado como eliminado
@@ -97,7 +100,6 @@ export const unblockUser = async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 };
-
 
 // @desc Obtener todos los reportes
 // @route GET /admin/reports

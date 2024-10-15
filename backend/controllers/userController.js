@@ -2,7 +2,7 @@
 import User from "../models/User.js";
 import { validationResult } from "express-validator";
 import { uploadImage, deleteImage } from "../utils/cloudinary.js";
-import fs from 'fs-extra'
+import fs from "fs-extra";
 
 // @desc Obtener el perfil de un usuario por su ID
 // @route GET /profile/:userId
@@ -43,18 +43,20 @@ export const updateUserProfile = async (req, res) => {
     user.bio = bio || user.bio;
 
     if (req.files?.img) {
-      if (await deleteImage(user.profilePicture.public_id)) {
-        const result = await uploadImage(
-          req.files.img.tempFilePath,
-          "profilesImg"
-        );
-        user.profilePicture = {
-          public_id: result.public_id,
-          secure_url: result.secure_url,
-        };
-  
-        await fs.unlink(req.files.img.tempFilePath);
+
+      if (user.profilePicture?.public_id) {
+        await deleteImage(user.profilePicture.public_id); // Solo eliminar si hay un public_id definido
       }
+      const result = await uploadImage(
+        req.files.img.tempFilePath,
+        "profilesImg"
+      );
+      user.profilePicture = {
+        public_id: result.public_id,
+        secure_url: result.secure_url,
+      };
+
+      await fs.unlink(req.files.img.tempFilePath);
     }
 
     await user.save();
@@ -66,7 +68,7 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
-// @desc Eliminar perfil de usuario (opcionalmente soft delete)
+// @desc Eliminar perfil de usuario
 // @route DELETE /profile/:userId
 export const deleteUserProfile = async (req, res) => {
   try {
@@ -118,11 +120,9 @@ export const unfollowUser = async (req, res) => {
     const userToUnfollow = await User.findById(req.params.userId);
 
     if (req.user.id === req.params.userId) {
-      return res
-        .status(400)
-        .json({
-          msg: "No puedes dejar de seguirte a ti mismo porque no te sigues",
-        });
+      return res.status(400).json({
+        msg: "No puedes dejar de seguirte a ti mismo porque no te sigues",
+      });
     }
 
     if (!userToUnfollow) {
