@@ -1,3 +1,7 @@
+// models/User.js
+import mongoose from "mongoose";
+import crypto from "crypto"; 
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -16,8 +20,8 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   profilePicture: {
-    type: String,
-    default: "",
+    public_id: String,
+    secure_url: String 
   },
   bio: {
     type: String,
@@ -40,7 +44,7 @@ const userSchema = new mongoose.Schema({
   streamKey: {
     type: String,
     unique: true,
-    default: () => require("crypto").randomBytes(16).toString("hex"),
+    default: () => crypto.randomBytes(16).toString("hex"), // Actualización aquí
   },
   isStreaming: {
     type: Boolean,
@@ -59,9 +63,14 @@ const userSchema = new mongoose.Schema({
   },
   isDelete: {
     type: Boolean,
-    default: false
+    default: false,
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false,
   }
 });
 
+// Exportar el modelo como `default`
 const User = mongoose.model("User", userSchema);
-module.exports = User;
+export default User;

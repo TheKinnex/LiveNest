@@ -13,30 +13,29 @@ const subscriptionSchema = new mongoose.Schema({
   },
   plan: {
     type: String,
-    enum: ['free', 'premium', 'enterprise'],
-    default: 'free', // Tipo de plan que el usuario ha seleccionado para la suscripción
+    enum: ['free', 'paid'], // Solo "free" y "paid"
+    required: true,
   },
   price: {
     type: Number,
-    default: 0, // Precio de la suscripción según el tipo de plan
+    default: 4, // Precio fijo de $4 para suscripciones pagas
+  },
+  durationInDays: {
+    type: Number,
+    default: 30, // Duración fija de 30 días (1 mes)
   },
   startDate: {
     type: Date,
     default: Date.now, // Fecha de inicio de la suscripción
   },
   endDate: {
-    type: Date, // Fecha de finalización de la suscripción
+    type: Date, // Fecha de finalización de la suscripción, se calculará automáticamente
   },
   isActive: {
     type: Boolean,
     default: true, // Estado de la suscripción (activa o inactiva)
   },
-  // NUEVO: Agregar referencia directa a la transmisión en vivo (opcional)
-  liveStream: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'LiveStream',
-  },
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
-module.exports = Subscription;
+export default Subscription;

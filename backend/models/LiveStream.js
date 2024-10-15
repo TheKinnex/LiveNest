@@ -20,4 +20,4 @@ const liveStreamSchema = new mongoose.Schema({
 });
 
 const LiveStream = mongoose.model("LiveStream", liveStreamSchema);
-module.exports = LiveStream;
+export default LiveStream;

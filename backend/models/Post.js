@@ -12,7 +12,10 @@ const postSchema = new mongoose.Schema({
     maxlength: 500,
   },
   media: {
-    type: [String], // Lista de URLs para imágenes o videos
+    type: [{
+      public_id: String,
+      secure_url: String
+    }], // Lista de URLs para imágenes o videos
   },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
@@ -27,8 +30,11 @@ const postSchema = new mongoose.Schema({
   isDelete: {
     type: Boolean,
     default: false
-  }
+  }, tags: [{
+    type: String, // Los tags serán de tipo cadena
+    maxlength: 50, // Opcional: Limitar la longitud de cada tag
+  }],
 });
 
 const Post = mongoose.model('Post', postSchema);
-module.exports = Post;
+export default Post;
