@@ -26,3 +26,11 @@ export const adminMiddleware = async (req, res, next) => {
       res.status(401).json({ msg: "Token no válido" });
     }
   };
+
+/* 
+
+Podrias ahorrarte realizar una llamada a tu base de datos
+si en el token le colocas el role a cada usuario 
+asi se optimizan tiempos de request 
+
+*/
