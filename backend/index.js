@@ -19,6 +19,11 @@ dotenv.config();
 connectDB();
 
 const app = express();
+/* 
+
+Debes definir correctamente las opciones de cors para asegurar la seguridad de tu backend.
+
+*/
 app.use(cors());
 app.use(express.json());
 app.use(fileUpload({

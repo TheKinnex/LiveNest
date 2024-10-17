@@ -63,6 +63,13 @@ export const createPost = async (req, res) => {
   }
 };
 
+
+/* 
+
+Seria bueno que mezclaras entre seguidores y recomendaciones, estaria interesante
+ese algoritmo
+
+*/
 // @desc Obtener el feed de publicaciones (usuarios seguidos + recomendaciones)
 // @route GET /feed
 export const getFeed = async (req, res) => {
@@ -204,6 +211,12 @@ export const toggleLikePost = async (req, res) => {
   }
 };
 
+/* 
+
+commentPost deberia ser parte de los controladores de comentarios
+
+*/
+
 // @desc Comentar en un post
 // @route POST /posts/:postId/comment
 export const commentPost = async (req, res) => {
@@ -329,6 +342,12 @@ export const deletePost = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
+/* 
+
+El usuario deberia poder reportar varias veces un mismo post mientras la razon cambie
+
+*/
 
 // @desc Reportar un post
 // @route POST /posts/:postId/report

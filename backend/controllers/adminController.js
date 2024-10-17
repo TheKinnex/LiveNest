@@ -40,8 +40,50 @@ export const editUser = async (req, res) => {
   }
 };
 
+/* 
+
+Para Edit user aunque esta bien, podrias utilizar una solucion que no necesite el reenvio de los datos 
+que no quieras editar como:
+
+export const editUser = async (req, res) => {
+  try {
+    const { username, email, role } = req.body;
+
+    // Opciones para devolver el documento actualizado
+    const options = { new: true, runValidators: true };
+
+    // Actualiza solo los campos proporcionados
+    const updatedFields = {};
+    if (username) updatedFields.username = username;
+    if (email) updatedFields.email = email;
+    if (role) updatedFields.role = role;
+
+    // Buscar y actualizar el usuario en un solo paso
+    const user = await User.findByIdAndUpdate(req.params.userId, updatedFields, options);
+
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    res.json({ msg: "Usuario actualizado correctamente", user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
+
+
+*/
+
 // @desc Bloquear o eliminar un usuario
 // @route DELETE /admin/users/:userId
+
+/* 
+
+Si el controlador no se encargara solamente del softDelete debe tener
+un nombre mas representativo de su funcion
+
+*/
 export const deleteUser = async (req, res) => {
   try {
     const { action } = req.body; // 'block' para bloquear, 'delete' para eliminar
@@ -54,11 +96,27 @@ export const deleteUser = async (req, res) => {
 
     
 
+    // Verifica ya que tienes un error en la propiedad "isDeleted" esta no existe
     if (action === "block") {
       user.isBlocked = true;
-      user.isDeleted = false; // Por si ya estaba marcado como eliminado
+      //user.isDeleted = false; // Por si ya estaba marcado como eliminado
+
+      /* 
+      
+      La voy a cambiar para poder probarla
+      
+      */
+
+      user.isDelete = false;
     } else if (action === "delete") {
-      user.isDeleted = true;
+      /* 
+      
+      igual aqui "isDeleted" no existe
+      
+      */
+      //user.isDeleted = true;
+
+      user.isDelete = true;
       user.isBlocked = false; // Por si ya estaba bloqueado
     } else {
       return res.status(400).json({ msg: "Acción no válida" });
@@ -137,6 +195,11 @@ export const deletePost = async (req, res) => {
     post.updatedAt = Date.now();
     await post.save();
 
+    /* 
+    
+    Aqui seria bueno que se devolviera el post que al que se le aplico la accion
+    
+    */
     res.json({ msg: 'Post marcado como eliminado exitosamente' });
   } catch (err) {
     console.error(err.message);

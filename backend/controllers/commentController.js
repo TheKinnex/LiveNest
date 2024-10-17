@@ -21,6 +21,12 @@ export const deleteComment = async (req, res) => {
     }
 
     // Verificar si el usuario es el autor del comentario, el dueño del post, o un administrador
+
+    /* 
+    
+    El usuario deberia poder eliminar su propio comentario (Usando Soft Delete),el administrador tambien deberia poder
+    
+    */
     if (
       comment.author.toString() !== req.user.id && // Autor del comentario
       post.author.toString() !== req.user.id && // Dueño del post
@@ -78,3 +84,9 @@ export const editComment = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
+/* 
+
+Curioso que el controlador para crear un comentario no este en este archivo
+
+*/

@@ -7,6 +7,20 @@ export const createConversation = async (req, res) => {
   try {
     const { userId } = req.body; // Solo se necesita un ID de usuario
 
+    /* 
+    
+    aqui podrias unir las dos validaciones en una sola
+
+    if (!userId || userId === req.user.id) {
+  const msg = !userId
+    ? "Debes proporcionar un ID de usuario"
+    : "No puedes iniciar una conversación contigo mismo";
+    
+  return res.status(400).json({ msg });
+}
+
+    
+    */
     // Verificar si se proporcionó un ID de usuario
     if (!userId) {
       return res.status(400).json({ msg: "Debes proporcionar un ID de usuario" });
