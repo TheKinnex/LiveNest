@@ -64,7 +64,7 @@ export const register = async (req, res) => {
     await user.save();
 
     // Construir la URL de verificación
-    const verificationUrl = `${req.protocol}://${process.env.FRONT_URL}/auth/verify?code=${verificationCode}&email=${email}`;
+    const verificationUrl = `${req.protocol}://${process.env.FRONT_URL}/verify?code=${verificationCode}&email=${email}`;
 
     // Enviar el correo con la URL de verificación
     const message = `Gracias por registrarte. Por favor, verifica tu cuenta haciendo clic en el siguiente enlace: \n\n ${verificationUrl}`;
