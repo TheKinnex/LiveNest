@@ -4,6 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "npm i && node index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [],
