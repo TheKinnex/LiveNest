@@ -75,8 +75,6 @@ io.use((socket, next) => {
 });
 
 
-
-
 // Manejo de eventos con socket.io
 io.on("connection", (socket) => {
   console.log(`Usuario ${socket.userId} se ha conectado con el socket: ${socket.id}`);

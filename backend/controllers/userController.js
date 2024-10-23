@@ -4,10 +4,33 @@ import { validationResult } from "express-validator";
 import { uploadImage, deleteImage } from "../utils/cloudinary.js";
 import fs from "fs-extra";
 
+
+
+// @desc Buscar usuarios por nombre de usuario
+// @route GET /users?username=xxx
+export const searchUsers = async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    if (!username) {
+      return res.status(400).json({ msg: "Por favor, proporciona un término de búsqueda." });
+    }
+
+    // Buscar usuarios cuyo nombre de usuario contenga el término de búsqueda, ignorando mayúsculas/minúsculas
+    const users = await User.find({
+      username: { $regex: username, $options: 'i' }, // 'i' para ignorar mayúsculas
+      _id: { $ne: req.user.id } // Excluir al usuario autenticado
+    }).select('username profilePicture'); // Seleccionar solo los campos necesarios
+
+    res.json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
+
 // @desc Obtener el perfil de un usuario por su ID
 // @route GET /profile/:userId
-
-
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findOne({

@@ -8,12 +8,16 @@ import {
   followUser,
   unfollowUser,
   getFollowers,      
-  getFollowing,      
+  getFollowing,   
+  searchUsers   
 } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authorizationMiddleware } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
+
+// Ruta para buscar usuarios por nombre de usuario
+router.get('/users', authMiddleware, searchUsers);
 
 // Ver perfil de un usuario (excluir perfiles eliminados)
 router.get('/:userId', authMiddleware, getUserProfile);

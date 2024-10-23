@@ -31,7 +31,6 @@ const ConversationDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
-        
       } catch (error) {
         console.error("Error al cargar los mensajes:", error);
       }
@@ -44,9 +43,11 @@ const ConversationDetail = () => {
         const res = await axios.get(`https://livenest-backend.onrender.com/conversations/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Suponiendo que la API devuelve los usuarios en la conversación
         const otherUser = res.data.users.find(user => user._id !== userId);
         setUsername(otherUser ? otherUser.username : "Usuario");
+
+        // Verificar el estado en línea del otro usuario al cargar la conversación
+        socket.emit('checkOnlineStatus', otherUser._id);
       } catch (error) {
         console.error("Error al obtener información de la conversación:", error);
       }
@@ -99,14 +100,13 @@ const ConversationDetail = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen"> {/* Cambié h-full a h-screen */}
+    <div className="flex flex-col h-screen">
       {/* Encabezado del chat */}
       <header className="bg-gray-800 p-4 flex items-center justify-between text-white">
         <div className="flex items-center space-x-3">
           <div className="bg-purple-600 h-10 w-10 rounded-full"></div>
           <div>
-            <p className="font-semibold">{username}</p> {/* Nombre del otro usuario */}
-            <p className="text-sm text-green-400">En línea</p> {/* Estado "En línea" */}
+            <p className="font-semibold">{username}</p>
           </div>
         </div>
         <button onClick={handleLeaveConversation} className="text-red-500">Salir</button>
@@ -121,20 +121,11 @@ const ConversationDetail = () => {
               key={index}
               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
-              <div
-                className={`p-2 rounded-lg max-w-xs ${
-                  isCurrentUser ? 'bg-purple-600 text-white' : 'bg-gray-700 text-white'
+              <div dir={`${isCurrentUser ? 'Right-to-left ' : 'left-to-Right '}`}
+                className={`p-1 max-w-xs ${isCurrentUser ? 'bg-purple-600 rounded-l-lg rounded-br-lg text-white border-white border' : 'bg-gray-700 text-white rounded-r-lg rounded-bl-lg border-white border'
                 }`}
               >
-                {!isCurrentUser && (
-                  <strong className="block text-sm font-semibold">
-                    {message.sender.username}
-                  </strong>
-                )}
-                <p className="mt-1">{message.content}</p>
-                <span className="text-xs text-gray-300 block mt-1 text-right">
-                  {new Date(message.createdAt).toLocaleTimeString()}
-                </span>
+                <p className="px-1 py-1 font-semibold text-base">{message.content}</p>
               </div>
             </div>
           );
@@ -143,7 +134,7 @@ const ConversationDetail = () => {
       </div>
 
       {/* Input para enviar mensaje */}
-      <div className="bg-gray-800 p-4 flex items-center space-x-2 sticky bottom-0"> {/* Usar sticky para que se quede fijo */}
+      <div className="bg-gray-800 p-4 flex items-center space-x-2 sticky bottom-0">
         <FaSmile className="text-purple-500 cursor-pointer" />
         <input
           type="text"
