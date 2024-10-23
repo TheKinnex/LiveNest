@@ -22,7 +22,14 @@ export const register = async (req, res) => {
     // Verificar si el usuario ya existe
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ msg: "El usuario ya existe" });
+      return res
+        .status(400)
+        .json({ msg: "El correo ya está vinculado a una cuenta" });
+    }
+
+    user = await User.findOne({ username });
+    if (user) {
+      return res.status(400).json({ msg: "Este username ya está ocupado" });
     }
 
     // Generar el código de verificación
@@ -33,7 +40,7 @@ export const register = async (req, res) => {
       username,
       email,
       password,
-      verificationCode, // Asegurarse de agregar el código aquí
+      verificationCode, // Guardar el código de verificación
     });
 
     // Encriptar la contraseña
@@ -56,11 +63,15 @@ export const register = async (req, res) => {
     // Guardar el usuario en la base de datos
     await user.save();
 
-    // Enviar el correo con el código de verificación
-    const message = `Tu código de verificación es: ${verificationCode}`;
+    // Construir la URL de verificación
+    const verificationUrl = `${req.protocol}://${process.env.FRONT_URL}/auth/verify?code=${verificationCode}&email=${email}`;
+
+    // Enviar el correo con la URL de verificación
+    const message = `Gracias por registrarte. Por favor, verifica tu cuenta haciendo clic en el siguiente enlace: \n\n ${verificationUrl}`;
+
     await sendEmail({
       email: user.email,
-      subject: "Código de verificación",
+      subject: "Verificación de cuenta",
       message,
     });
 
@@ -74,9 +85,9 @@ export const register = async (req, res) => {
 };
 
 // @desc Verificar el código de verificación y activar la cuenta
-// @route POST /auth/verify
+// @route GET /auth/verify
 export const verifyUser = async (req, res) => {
-  const { email, verificationCode } = req.body;
+  const { email, code } = req.query; // Obtener el email y el código de la URL
 
   try {
     // Buscar al usuario por correo
@@ -87,20 +98,18 @@ export const verifyUser = async (req, res) => {
     }
 
     // Verificar si el código de verificación es correcto
-    if (user.verificationCode !== verificationCode) {
+    if (user.verificationCode !== code) {
       return res.status(400).json({ msg: "Código de verificación inválido" });
     }
 
     // Activar la cuenta
     user.isVerified = true;
-    user.verificationCode = undefined; // Establecer en undefined
+    user.verificationCode = undefined; // Eliminar el código de verificación después de usarlo
     await user.save();
 
-    res
-      .status(200)
-      .json({
-        msg: "Cuenta verificada exitosamente. Ahora puedes iniciar sesión.",
-      });
+    res.status(200).json({
+      msg: "Cuenta verificada exitosamente. Ahora puedes iniciar sesión.",
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");

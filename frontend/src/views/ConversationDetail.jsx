@@ -14,7 +14,7 @@ const ConversationDetail = () => {
   const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
   useEffect(() => {
-    const socket = io('http://localhost:5000', {
+    const socket = io('https://livenest-backend.onrender.com', {
       auth: { token },
     });
 
@@ -24,7 +24,7 @@ const ConversationDetail = () => {
     // Obtener los mensajes de la conversación desde el backend
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/messages/${id}`, {
+        const res = await axios.get(`https://livenest-backend.onrender.com/messages/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
@@ -50,7 +50,7 @@ const ConversationDetail = () => {
   const handleSendMessage = async () => {
     try {
       await axios.post(
-        `http://localhost:5000/messages/${id}/send`,
+        `https://livenest-backend.onrender.com/messages/${id}/send`,
         { content: newMessage },
         {
           headers: { Authorization: `Bearer ${token}` },

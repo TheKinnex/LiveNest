@@ -17,7 +17,7 @@ const Conversations = () => {
         return;
       }
 
-        const res = await axios.get('http://localhost:5000/conversations', {
+        const res = await axios.get('https://livenest-backend.onrender.com/conversations', {
           headers: { Authorization: `Bearer ${token}` }, // Asegúrate de enviar el token en los headers
         });
         setConversations(res.data);
