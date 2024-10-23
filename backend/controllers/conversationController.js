@@ -78,8 +78,6 @@ export const getUserConversations = async (req, res) => {
   }
 };
 
-import Conversation from "../models/Conversation.js";
-
 // @desc Obtener información de una conversación específica por ID
 // @route GET /conversations/:id
 export const getConversationById = async (req, res) => {
