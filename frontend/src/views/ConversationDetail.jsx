@@ -1,26 +1,30 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Agrega useNavigate para la redirección
+import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 
-const socket = io('http://localhost:5000');
-
 const ConversationDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Hook para redirigir
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
+  // Obtener el token y el userId desde localStorage o sessionStorage
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+
   useEffect(() => {
+    const socket = io('http://localhost:5000', {
+      auth: { token },
+    });
+
     // Unirse a la conversación en socket.io
     socket.emit("joinConversation", id);
 
     // Obtener los mensajes de la conversación desde el backend
     const fetchMessages = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(
-          `http://localhost:5000/messages/${id}`, {
+        const res = await axios.get(`http://localhost:5000/messages/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
@@ -35,26 +39,23 @@ const ConversationDetail = () => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    // Cleanup para evitar fugas de memoria
     return () => {
       socket.off("receiveMessage");
-      socket.emit("leaveConversation", id); // Dejar la conversación cuando se salga del componente
+      socket.emit("leaveConversation", id);
+      socket.disconnect();
     };
-  }, [id]);
+  }, [id, token]);
 
   const handleSendMessage = async () => {
     try {
-      const token = localStorage.getItem("token"); // Obtener el token del localStorage
-      const headers = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-
-      // Enviar el mensaje al backend
       await axios.post(
         `http://localhost:5000/messages/${id}/send`,
         { content: newMessage },
-        headers // Agregar los headers con el token
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-
       setNewMessage(""); // Limpiar el campo de mensaje
     } catch (error) {
       console.error("Error al enviar el mensaje:", error);
@@ -62,32 +63,48 @@ const ConversationDetail = () => {
   };
 
   const handleLeaveConversation = () => {
-    // Emitir evento para dejar la conversación
-    socket.emit("leaveConversation", id);
-
-    // Redirigir al usuario a la lista de conversaciones
-    navigate("/conversations"); // O cualquier otra ruta a la que desees redirigir
+    navigate("/conversations");
   };
 
   return (
-    <div>
-      <h2>Conversation Detail</h2>
-      <ul>
-        {messages.map((message, index) => (
-          <li key={index}>
-            <strong>{message.sender?.username || "Anónimo"}:</strong> {message.content}{" "}
-            <span>{new Date(message.createdAt).toLocaleString()}</span>
-          </li>
-        ))}
+    <div className="p-4">
+      <h2 className="text-lg font-semibold">Conversation Detail</h2>
+      <ul className="mt-4 space-y-2">
+        {messages.map((message, index) => {
+          // Verifica si el mensaje fue enviado por el usuario actual
+          const isCurrentUser = String(message.sender._id) === String(userId);
+
+          return (
+            <li
+              key={index}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`} // Cambiar la alineación según el remitente
+            >
+              <div
+                className={`p-2 rounded-lg max-w-xs ${
+                  isCurrentUser ? 'bg-red-100 text-right' : 'bg-blue-100 text-left'
+                }`} // Cambiar el color y la alineación según el remitente
+              >
+                <strong className={isCurrentUser ? "text-red-500" : "text-blue-500"}>
+                  {message.sender.username}:
+                </strong>
+                <p>{message.content}</p>
+                <span className="text-xs text-gray-500">{new Date(message.createdAt).toLocaleString()}</span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
-      <input
-        type="text"
-        placeholder="Escribe un mensaje..."
-        value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
-      />
-      <button onClick={handleSendMessage}>Enviar</button>
-      <button onClick={handleLeaveConversation}>Salir</button> {/* Botón para salir */}
+      <div className="mt-4 flex items-center">
+        <input
+          className="flex-grow border rounded-md px-2 py-1"
+          type="text"
+          placeholder="Escribe un mensaje..."
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+        />
+        <button onClick={handleSendMessage} className="ml-2 bg-green-500 text-white px-4 py-1 rounded-md">Enviar</button>
+        <button onClick={handleLeaveConversation} className="ml-2 bg-gray-500 text-white px-4 py-1 rounded-md">Salir</button>
+      </div>
     </div>
   );
 };

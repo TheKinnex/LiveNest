@@ -9,16 +9,23 @@ const Conversations = () => {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/conversations', {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+        // Si no hay token, redirigir al login
+      if (!token) {
+        navigate('/'); // Redirigir al login
+        return;
+      }
+
+        const res = await axios.get('http://localhost:5000/conversations', {
+          headers: { Authorization: `Bearer ${token}` }, // Asegúrate de enviar el token en los headers
         });
-        setConversations(response.data);
+        setConversations(res.data);
       } catch (error) {
-        console.error(error);
-        navigate('/');
+        console.error("Error al obtener conversaciones:", error);
       }
     };
+    
 
     fetchConversations();
   }, [navigate]);

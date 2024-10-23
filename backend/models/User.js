@@ -68,6 +68,16 @@ const userSchema = new mongoose.Schema({
   isBlocked: {
     type: Boolean,
     default: false,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false, // El usuario no está verificado al momento del registro
+  },
+  verificationCode: {
+    type: String,
+    required: function() {
+      return !this.isVerified;
+    }
   }
 });
 

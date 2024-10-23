@@ -16,6 +16,7 @@ import paymentsRoutes from "./routes/paymentsRoutes.js";
 import suscriptionRoutes from "./routes/suscriptionRoutes.js";
 import Message from "./models/Message.js";
 import Conversation from "./models/Conversation.js";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -58,24 +59,42 @@ app.use("/suscription", suscriptionRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) {
+    return next(new Error("Acceso no autorizado. Token no proporcionado."));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.user.id; // Asigna el ID del usuario autenticado al socket
+    next(); // Continúa si la verificación del token es correcta
+  } catch (err) {
+    return next(new Error("Acceso no autorizado. Token inválido."));
+  }
+});
+
+
+
+
 // Manejo de eventos con socket.io
 io.on("connection", (socket) => {
-  console.log("Un cliente se ha conectado:", socket.id);
+  console.log(`Usuario ${socket.userId} se ha conectado con el socket: ${socket.id}`);
 
   // Unirse a una sala de conversación
   socket.on("joinConversation", (conversationId) => {
     socket.join(conversationId);
-    console.log(`Cliente ${socket.id} se unió a la sala: ${conversationId}`);
+    console.log(`Usuario ${socket.userId} se unió a la sala: ${conversationId}`);
   });
 
   // Abandonar una sala de conversación cuando el usuario lo solicita
   socket.on("leaveConversation", (conversationId) => {
     socket.leave(conversationId);
-    console.log(`Cliente ${socket.id} ha dejado la sala: ${conversationId}`);
+    console.log(`Usuario ${socket.userId} ha dejado la sala: ${conversationId}`);
   });
 
   // Escuchar cuando un usuario envía un mensaje
-  socket.on("sendMessage", async ({ conversationId, senderId, content }) => {
+  socket.on("sendMessage", async ({ conversationId, content }) => {
     try {
       const conversation = await Conversation.findById(conversationId);
       if (!conversation) {
@@ -85,7 +104,7 @@ io.on("connection", (socket) => {
       // Crear el nuevo mensaje
       const newMessage = new Message({
         conversation: conversationId,
-        sender: senderId,
+        sender: socket.userId, // Usar el ID del usuario del socket
         content,
       });
 
@@ -104,7 +123,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`Cliente ${socket.id} se ha desconectado`);
+    console.log(`Usuario ${socket.userId} se ha desconectado`);
   });
 });
 

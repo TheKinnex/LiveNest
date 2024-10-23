@@ -24,7 +24,7 @@ export const sendMessage = async (req, res) => {
     // Crear el nuevo mensaje
     const newMessage = new Message({
       conversation: req.params.conversationId,
-      sender: req.user.id,
+      sender: req.user.id, // Asignar el ID del usuario autenticado
       content,
     });
 
@@ -38,12 +38,14 @@ export const sendMessage = async (req, res) => {
     // Obtener el username del remitente
     const sender = await User.findById(req.user.id).select("username");
 
-    // Emitir el mensaje al frontend a través de socket.io
+    // Emitir el mensaje al frontend a través de socket.io, incluyendo _id y username
     req.io.to(req.params.conversationId).emit("receiveMessage", {
+      _id: savedMessage._id, // Agregar el _id del mensaje
       content: savedMessage.content,
       createdAt: savedMessage.createdAt,
       sender: {
-        username: sender.username, // Incluimos el username del remitente
+        _id: req.user.id, // Incluir el _id del remitente
+        username: sender.username, // Incluir el username del remitente
       },
     });
 

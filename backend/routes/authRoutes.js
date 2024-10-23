@@ -6,10 +6,14 @@ import {
   login,
   forgotPassword,
   resetPassword,
+  verifyUser
 } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+
+// Verificación de usuario
+router.post('/verify', verifyUser);
 
 // Ruta para registrar un nuevo usuario
 router.post(
