@@ -113,7 +113,7 @@ const ConversationDetail = () => {
       </header>
 
       {/* Mensajes */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar bg-gray-900">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-900 md:pb-0 pb-28 no-scrollbar"> {/* Añadido padding-bottom */}
         {messages.map((message, index) => {
           const isCurrentUser = String(message.sender._id) === String(userId);
           return (
@@ -123,7 +123,7 @@ const ConversationDetail = () => {
             >
               <div dir={`${isCurrentUser ? 'Right-to-left ' : 'left-to-Right '}`}
                 className={`p-1 max-w-xs ${isCurrentUser ? 'bg-purple-600 rounded-l-lg rounded-br-lg text-white border-white border' : 'bg-gray-700 text-white rounded-r-lg rounded-bl-lg border-white border'
-                }`}
+                  }`}
               >
                 <p className="px-1 py-1 font-semibold text-base">{message.content}</p>
               </div>
@@ -134,12 +134,12 @@ const ConversationDetail = () => {
       </div>
 
       {/* Input para enviar mensaje */}
-      <div className="bg-gray-800 p-4 flex items-center space-x-2 sticky bottom-0">
+      <div className=" md:bg-gray-900 p-4 absolute md:static flex items-center space-x-2  bottom-0 left-0 w-full md:pb-4 pb-2"> {/* fixed para que se mantenga visible */}
         <FaSmile className="text-purple-500 cursor-pointer" />
         <input
           type="text"
           placeholder="Enviar mensaje..."
-          className="flex-grow bg-gray-700 text-white p-2 rounded-md focus:outline-none"
+          className="flex-grow bg-transparent border border-white text-white p-2 rounded-md focus:outline-none"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => {
@@ -152,6 +152,7 @@ const ConversationDetail = () => {
           <FaPaperPlane />
         </button>
       </div>
+
     </div>
   );
 };

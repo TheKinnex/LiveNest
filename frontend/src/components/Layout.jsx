@@ -12,19 +12,24 @@ const Layout = () => {
     const showSidebar = !hideSidebarRoutes.includes(location.pathname);
 
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen flex-col md:flex-row">
+            {/* Mostrar el Sidebar solo en pantallas grandes */}
             {showSidebar && (
-                <div>
-                    <div className="w-64 hidden md:block">
-                        <Sidebar />
-                    </div>
-                    <div className=" block md:hidden">
-                        <Sidebar />
-                    </div>
+                <div className="hidden md:flex w-64">
+                    <Sidebar />
                 </div>
             )}
-            <div className={`flex-1 ${showSidebar ? '' : 'w-full'}`}>
+
+            {/* Contenido principal */}
+            <div className="flex-1 flex flex-col">
                 <Outlet />
+
+                {/* Barra de navegación inferior en móviles */}
+                {showSidebar && (
+                    <div className="md:hidden fixed bottom-0 w-full bg-gray-900 text-white py-3 mt-20">
+                        <Sidebar />
+                    </div>
+                )}
             </div>
         </div>
     );

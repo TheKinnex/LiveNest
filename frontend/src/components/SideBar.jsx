@@ -38,23 +38,18 @@ const Sidebar = () => {
             <div className="md:hidden fixed bottom-0 w-full bg-[#1F2937] text-white flex justify-around py-3">
                 <a href="/" className="flex flex-col items-center">
                     <FaHome />
-                    <span className="text-xs">Inicio</span>
                 </a>
                 <a href="/search" className="flex flex-col items-center">
                     <FaSearch />
-                    <span className="text-xs">Buscar</span>
                 </a>
                 <a href="/explore" className="flex flex-col items-center">
                     <FaBell />
-                    <span className="text-xs">Explorar</span>
                 </a>
                 <a href="/messages" className="flex flex-col items-center">
                     <FaEnvelope />
-                    <span className="text-xs">Mensajes</span>
                 </a>
                 <a href="/profile" className="flex flex-col items-center">
                     <FaUser />
-                    <span className="text-xs">Perfil</span>
                 </a>
             </div>
         </div>
