@@ -23,7 +23,7 @@ const Verify = () => {
                 }
 
                 // Enviar la solicitud al backend para verificar la cuenta
-                const response = await axios.post(`https://livenest-backend.onrender.com/auth/verify`, {
+                const response = await axios.get(`https://livenest-backend.onrender.com/auth/verify`, {
                     params: { email, code }
                 });
 
