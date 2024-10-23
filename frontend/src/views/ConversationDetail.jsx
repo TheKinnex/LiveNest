@@ -17,7 +17,7 @@ const ConversationDetail = () => {
   const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
   useEffect(() => {
-    const socket = io('https://livenest-backend.onrender.com', {
+    const socket = io(`${import.meta.env.VITE_API_URL}`, {
       auth: { token },
     });
 
@@ -27,7 +27,7 @@ const ConversationDetail = () => {
     // Obtener los mensajes de la conversación desde el backend
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`https://livenest-backend.onrender.com/messages/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/messages/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
@@ -40,7 +40,7 @@ const ConversationDetail = () => {
     // Obtener información de la conversación para mostrar el nombre del usuario
     const fetchConversationInfo = async () => {
       try {
-        const res = await axios.get(`https://livenest-backend.onrender.com/conversations/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/conversations/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const otherUser = res.data.users.find(user => user._id !== userId);
@@ -83,7 +83,7 @@ const ConversationDetail = () => {
     if (newMessage.trim() === "") return;
     try {
       await axios.post(
-        `https://livenest-backend.onrender.com/messages/${id}/send`,
+        `${import.meta.env.VITE_API_URL}/messages/${id}/send`,
         { content: newMessage },
         {
           headers: { Authorization: `Bearer ${token}` },

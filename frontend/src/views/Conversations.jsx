@@ -28,7 +28,7 @@ const Conversations = () => {
           return;
         }
 
-        const res = await axios.get('https://livenest-backend.onrender.com/conversations', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -77,7 +77,7 @@ const Conversations = () => {
 
       // Supongamos que tienes un endpoint GET /users?username=xxx para buscar usuarios
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      const res = await axios.get(` https://livenest-backend.onrender.com/profile/users?username=${searchTerm}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/profile/users?username=${searchTerm}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -99,7 +99,7 @@ const Conversations = () => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
       const res = await axios.post(
-        'https://livenest-backend.onrender.com/conversations',
+        `${import.meta.env.VITE_API_URL}/conversations`,
         { userId: selectedUserId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

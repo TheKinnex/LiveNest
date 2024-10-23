@@ -35,7 +35,7 @@ const Sidebar = () => {
             </aside>
 
             {/* Barra inferior para móviles */}
-            <div className="md:hidden fixed bottom-0 w-full bg-[#1F2937] text-white flex justify-around py-3">
+            <div className="md:hidden fixed bottom-0 w-full bg-[#1F2937] text-white flex justify-around py-4">
                 <a href="/" className="flex flex-col items-center">
                     <FaHome />
                 </a>

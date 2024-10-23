@@ -19,7 +19,7 @@ const Register = () => {
 
     try {
       // Llamada a la API de registro
-      await axios.post('https://livenest-backend.onrender.com/auth/register', { email, password, username });
+      await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { email, password, username });
 
       // Mostrar el mensaje de éxito si el registro es exitoso
       setSuccessMessage('Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.');

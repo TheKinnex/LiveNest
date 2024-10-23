@@ -16,7 +16,7 @@ const Login = () => {
     setLoading(true); // Mostrar indicador de carga
     setErrorMessage(''); // Limpiar mensaje de error previo
     try {
-      const response = await axios.post('https://livenest-backend.onrender.com/auth/login', { email, password });
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password });
 
       // Si el usuario seleccionó "Recordarme", almacenar el token en localStorage, sino en sessionStorage
 
