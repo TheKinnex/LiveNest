@@ -13,7 +13,7 @@ import { authMiddleware } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 // Verificación de usuario
-router.post('/verify', verifyUser);
+router.get('/verify', verifyUser);
 
 // Ruta para registrar un nuevo usuario
 router.post(

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Register = () => {
@@ -8,19 +7,20 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState(''); // Estado para el mensaje de éxito
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Mostrar indicador de carga
     setErrorMessage(''); // Limpiar mensaje de error previo
+    setSuccessMessage(''); // Limpiar mensaje de éxito previo
 
     try {
       // Llamada a la API de registro
-      await axios.post('https://livenest-backend.onrender.com/auth/register', { email, password, username });
+      await axios.get('https://livenest-backend.onrender.com/auth/register', { email, password, username });
 
-      // Redirigir a la página de verificación pasando el email como estado
-      navigate('/verify', { state: { email } });
+      // Mostrar el mensaje de éxito si el registro es exitoso
+      setSuccessMessage('Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.');
     } catch (error) {
       if (error.response && error.response.data) {
         setErrorMessage(error.response.data.msg);
@@ -77,6 +77,9 @@ const Register = () => {
 
           {/* Mostrar mensaje de error */}
           {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+
+          {/* Mostrar mensaje de éxito */}
+          {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
 
           {/* Botón de enviar deshabilitado si está cargando */}
           <button className=' bg-purple-600 p-2 rounded-md font-medium' type="submit" disabled={loading}>
