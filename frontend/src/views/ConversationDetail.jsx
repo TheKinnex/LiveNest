@@ -10,6 +10,7 @@ const ConversationDetail = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [username, setUsername] = useState("");
+  const [isSending, setIsSending] = useState(false); // Estado para controlar el envío
   const messagesEndRef = useRef(null);
 
   // Obtener el token y el userId desde localStorage o sessionStorage
@@ -80,7 +81,8 @@ const ConversationDetail = () => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() === "") return;
+    if (newMessage.trim() === "" || isSending) return; // Evitar múltiples envíos
+    setIsSending(true); // Bloquear el envío
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/messages/${id}/send`,
@@ -92,6 +94,8 @@ const ConversationDetail = () => {
       setNewMessage(""); // Limpiar el campo de mensaje
     } catch (error) {
       console.error("Error al enviar el mensaje:", error);
+    } finally {
+      setIsSending(false); // Desbloquear el botón de envío
     }
   };
 
@@ -134,7 +138,7 @@ const ConversationDetail = () => {
       </div>
 
       {/* Input para enviar mensaje */}
-      <div className=" md:bg-gray-900 p-4 absolute md:static flex items-center space-x-2  bottom-0 left-0 w-full md:pb-4 pb-2"> {/* fixed para que se mantenga visible */}
+      <div className="md:bg-gray-900 p-4 absolute md:static flex items-center space-x-2 bottom-0 left-0 w-full md:pb-4 pb-2">
         <FaSmile className="text-purple-500 cursor-pointer" />
         <input
           type="text"
@@ -148,11 +152,10 @@ const ConversationDetail = () => {
             }
           }}
         />
-        <button onClick={handleSendMessage} className="text-purple-500">
+        <button onClick={handleSendMessage} className="text-purple-500" disabled={isSending}>
           <FaPaperPlane />
         </button>
       </div>
-
     </div>
   );
 };

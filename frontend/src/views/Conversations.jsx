@@ -1,50 +1,103 @@
 // src/views/Conversations.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { FaPlus } from 'react-icons/fa'; // Icono para el botón de agregar
+import { FaPlus } from 'react-icons/fa';
+import { io } from 'socket.io-client'; // Importar socket.io
 
-Modal.setAppElement('#root'); // Establece el elemento raíz para accesibilidad
+Modal.setAppElement('#root');
 
 const Conversations = () => {
   const [conversations, setConversations] = useState([]);
+  const conversationsRef = useRef([]);
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar el modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
 
+  const socketRef = useRef(null);
+
   useEffect(() => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
     const fetchConversations = async () => {
       try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId'); // Obtener el ID del usuario autenticado
-
-        // Si no hay token, redirigir al login
-        if (!token) {
-          navigate('/'); // Redirigir al login
-          return;
-        }
-
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Filtrar el nombre del otro usuario
         const updatedConversations = res.data.map((conversation) => {
-          const otherUsers = conversation.users.filter(user => user._id !== userId); // Excluir al usuario autenticado
+          const otherUsers = conversation.users.filter(user => String(user._id) !== String(userId));
           return { ...conversation, otherUsers };
         });
 
         setConversations(updatedConversations);
+        conversationsRef.current = updatedConversations;
       } catch (error) {
         console.error("Error al obtener conversaciones:", error);
       }
     };
 
     fetchConversations();
+
+    // Configurar la conexión a Socket.io una sola vez
+    if (!socketRef.current) {
+      socketRef.current = io(`${import.meta.env.VITE_API_URL}`, {
+        auth: { token: token }
+      });
+
+      // Escuchar eventos de creación de conversaciones en tiempo real
+      socketRef.current.on("newConversation", (newConversation) => {
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        const conversationExists = conversationsRef.current.some(
+          (convo) => String(convo._id) === String(newConversation._id)
+        );
+        if (!conversationExists) {
+          const otherUsers = newConversation.users.filter(user => String(user._id) !== String(userId));
+          const formattedConversation = { ...newConversation, otherUsers };
+          setConversations((prevConversations) => [...prevConversations, formattedConversation]);
+          conversationsRef.current = [...conversationsRef.current, formattedConversation];
+        }
+      });
+
+      socketRef.current.on("updateConversation", (updatedConversation) => {
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        const otherUsers = updatedConversation.users.filter(user => String(user._id) !== String(userId));
+        const updatedConvo = { ...updatedConversation, otherUsers };
+
+        setConversations((prevConversations) =>
+          prevConversations.map((convo) =>
+            String(convo._id) === String(updatedConvo._id) ? updatedConvo : convo
+          )
+        );
+        conversationsRef.current = conversationsRef.current.map((convo) =>
+          String(convo._id) === String(updatedConvo._id) ? updatedConvo : convo
+        );
+      });
+
+      // Log for debugging
+      socketRef.current.on("disconnect", () => {
+        console.log('Socket disconnected');
+      });
+    }
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.off("newConversation");
+        socketRef.current.off("updateConversation");
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
   }, [navigate]);
 
   // Función para abrir el modal
@@ -75,7 +128,6 @@ const Conversations = () => {
       setIsSearching(true);
       setError('');
 
-      // Supongamos que tienes un endpoint GET /users?username=xxx para buscar usuarios
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/profile/users?username=${searchTerm}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -98,16 +150,14 @@ const Conversations = () => {
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
+      // eslint-disable-next-line no-unused-vars
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/conversations`,
         { userId: selectedUserId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Añadir la nueva conversación a la lista
-      setConversations(prevConversations => [...prevConversations, { ...res.data.conversation, otherUsers: res.data.conversation.users.filter(user => user._id !== localStorage.getItem('userId')) }]);
-
-      // Cerrar el modal
+      // No agregar manualmente, 'newConversation' event handler se encargará
       closeModal();
     } catch (error) {
       console.error("Error al crear conversación:", error);
@@ -131,22 +181,25 @@ const Conversations = () => {
           Nueva Conversación
         </button>
       </div>
-      <ul className="mt-4 space-y-4">
-        {conversations.map((conversation) => (
-          <li key={conversation._id} className="bg-gray-800 p-4 rounded-md hover:bg-gray-700">
-            <Link to={`/conversations/${conversation._id}`} className="flex items-center">
-              <div className="bg-purple-600 h-10 w-10 rounded-full mr-4"></div>
-              <div>
-                {/* Mostrar solo el nombre del otro usuario */}
-                <p className="text-white font-semibold">
-                  {conversation.otherUsers.map(user => user.username).join(', ')}
-                </p>
-                <p className="text-gray-400 text-sm">{conversation.lastMessage}</p>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {conversations && conversations.length > 0 ? (
+        <ul className="mt-4 space-y-4">
+          {conversations.map((conversation) => (
+            <li key={conversation._id} className="bg-gray-800 p-4 rounded-md hover:bg-gray-700">
+              <Link to={`/conversations/${conversation._id}`} className="flex items-center">
+                <div className="bg-purple-600 h-10 w-10 rounded-full mr-4"></div>
+                <div>
+                  <p className="text-white font-semibold">
+                    {(conversation.otherUsers || []).map(user => user.username).join(', ')}
+                  </p>
+                  <p className="text-gray-400 text-sm">{conversation.lastMessage || ''}</p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-gray-400">No tienes conversaciones. Crea una nueva.</p>
+      )}
 
       {/* Modal para buscar y crear conversaciones */}
       <Modal
@@ -175,21 +228,26 @@ const Conversations = () => {
         {isSearching && <p className="text-gray-400">Buscando usuarios...</p>}
         {error && <p className="text-red-500 mb-2">{error}</p>}
         <ul>
-          {searchResults.map(user => (
-            <li key={user._id} className="flex items-center justify-between bg-gray-700 p-2 rounded-md mb-2">
-              <div className="flex items-center">
-                <div className="bg-purple-600 h-8 w-8 rounded-full mr-3"></div>
-                <span className="text-white">{user.username}</span>
-              </div>
-              <button
-                onClick={() => handleCreateConversation(user._id)}
-                className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600"
-              >
-                Crear
-              </button>
-            </li>
-          ))}
+          {searchResults && searchResults.length > 0 ? (
+            searchResults.map(user => (
+              <li key={user._id} className="flex items-center justify-between bg-gray-700 p-2 rounded-md mb-2">
+                <div className="flex items-center">
+                  <div className="bg-purple-600 h-8 w-8 rounded-full mr-3"></div>
+                  <span className="text-white">{user.username}</span>
+                </div>
+                <button
+                  onClick={() => handleCreateConversation(user._id)}
+                  className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600"
+                >
+                  Crear
+                </button>
+              </li>
+            ))
+          ) : (
+            <p>No se encontraron usuarios</p>
+          )}
         </ul>
+
         <button
           onClick={closeModal}
           className="mt-4 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"

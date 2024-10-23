@@ -1,3 +1,4 @@
+// server.js o app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -5,6 +6,7 @@ import fileUpload from "express-fileupload";
 import http from "http";
 import { Server } from "socket.io";
 import { connectDB } from "./config/config.js";
+import jwt from "jsonwebtoken";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
@@ -16,7 +18,7 @@ import paymentsRoutes from "./routes/paymentsRoutes.js";
 import suscriptionRoutes from "./routes/suscriptionRoutes.js";
 import Message from "./models/Message.js";
 import Conversation from "./models/Conversation.js";
-import jwt from "jsonwebtoken";
+import User from "./models/User.js";
 
 dotenv.config();
 
@@ -59,6 +61,7 @@ app.use("/suscription", suscriptionRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+// Middleware de autenticación para Socket.io
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) {
@@ -74,12 +77,15 @@ io.use((socket, next) => {
   }
 });
 
-
-// Manejo de eventos con socket.io
+// Manejo de eventos con Socket.io
 io.on("connection", (socket) => {
   console.log(`Usuario ${socket.userId} se ha conectado con el socket: ${socket.id}`);
 
-  // Unirse a una sala de conversación
+  // Unirse a una sala con el nombre del userId
+  socket.join(socket.userId);
+  console.log(`Usuario ${socket.userId} se ha unido a su propia sala: ${socket.userId}`);
+
+  // Unirse a salas de conversación cuando se escuche el evento 'joinConversation'
   socket.on("joinConversation", (conversationId) => {
     socket.join(conversationId);
     console.log(`Usuario ${socket.userId} se unió a la sala: ${conversationId}`);
@@ -113,8 +119,19 @@ io.on("connection", (socket) => {
       conversation.messages.push(savedMessage._id);
       await conversation.save();
 
+      // Obtener el username del remitente
+      const sender = await User.findById(socket.userId).select("username");
+
       // Emitir el mensaje a todos los usuarios conectados a esa conversación
-      io.to(conversationId).emit("receiveMessage", savedMessage);
+      io.to(conversationId).emit("receiveMessage", {
+        _id: savedMessage._id, // Agregar el _id del mensaje
+        content: savedMessage.content,
+        createdAt: savedMessage.createdAt,
+        sender: {
+          _id: socket.userId, // Incluir el _id del remitente
+          username: sender.username, // Incluir el username del remitente
+        },
+      });
     } catch (err) {
       console.error("Error enviando el mensaje:", err.message);
     }

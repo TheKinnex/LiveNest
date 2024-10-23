@@ -1,37 +1,21 @@
 // controllers/conversationController.js
 import Conversation from "../models/Conversation.js";
+import User from "../models/User.js";
 
 // @desc Crear una nueva conversación
 // @route POST /conversations
 export const createConversation = async (req, res) => {
   try {
-    const { userId } = req.body; // Solo se necesita un ID de usuario
-
-    /* 
-    
-    aqui podrias unir las dos validaciones en una sola
+    const { userId } = req.body;
 
     if (!userId || userId === req.user.id) {
-  const msg = !userId
-    ? "Debes proporcionar un ID de usuario"
-    : "No puedes iniciar una conversación contigo mismo";
-    
-  return res.status(400).json({ msg });
-}
-
-    
-    */
-    // Verificar si se proporcionó un ID de usuario
-    if (!userId) {
-      return res.status(400).json({ msg: "Debes proporcionar un ID de usuario" });
+      const msg = !userId
+        ? "Debes proporcionar un ID de usuario"
+        : "No puedes iniciar una conversación contigo mismo";
+      return res.status(400).json({ msg });
     }
 
-    // Verificar si el usuario proporcionado es diferente del usuario autenticado
-    if (userId === req.user.id) {
-      return res.status(400).json({ msg: "No puedes iniciar una conversación contigo mismo" });
-    }
-
-    // Verificar si ya existe una conversación entre el usuario autenticado y el otro usuario
+    // Verificar si ya existe una conversación
     let conversation = await Conversation.findOne({
       users: { $all: [req.user.id, userId] },
     });
@@ -40,7 +24,7 @@ export const createConversation = async (req, res) => {
       return res.status(400).json({ msg: "La conversación ya existe" });
     }
 
-    // Crear la conversación con el usuario autenticado y el otro usuario
+    // Crear la conversación
     conversation = new Conversation({
       users: [req.user.id, userId],
       messages: [],
@@ -48,13 +32,19 @@ export const createConversation = async (req, res) => {
 
     await conversation.save();
 
+    // Poblar los usuarios en la conversación
+    conversation = await Conversation.findById(conversation._id).populate("users", "username profilePicture");
+
+    // Emitir el evento de nueva conversación a ambos usuarios
+    req.io.to(req.user.id).emit("newConversation", conversation);
+    req.io.to(userId).emit("newConversation", conversation);
+
     res.status(201).json({ msg: "Conversación creada", conversation });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
-
 
 // @desc Obtener todas las conversaciones de un usuario
 // @route GET /conversations
