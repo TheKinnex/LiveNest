@@ -77,3 +77,32 @@ export const getUserConversations = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
+import Conversation from "../models/Conversation.js";
+
+// @desc Obtener información de una conversación específica por ID
+// @route GET /conversations/:id
+export const getConversationById = async (req, res) => {
+  try {
+    const conversationId = req.params.id;
+
+    // Buscar la conversación por ID
+    const conversation = await Conversation.findById(conversationId)
+      .populate("users", "username profilePicture") // Obtener los usuarios en la conversación
+      .populate({
+        path: "messages",
+        select: "content sender createdAt",
+        options: { sort: { createdAt: -1 } }, // Obtener mensajes ordenados por la fecha de creación
+      });
+
+    // Verificar si la conversación existe
+    if (!conversation) {
+      return res.status(404).json({ msg: "Conversación no encontrada" });
+    }
+
+    res.json(conversation);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import googleLog from '../assets/googleLog.png';
 
@@ -105,7 +105,7 @@ const Login = () => {
             </div>
           </button>
 
-          <span className='flex gap-2 text-xs text-blue-600' >No tienes una cuenta? <a href="" className=' text-purple-600'>Registrarse</a></span>
+          <span className='flex gap-2 text-xs text-blue-600' >No tienes una cuenta? <Link to={'/register'} className=' text-purple-600'>Registrarse</Link></span>
         </form>
       </div>
     </main>

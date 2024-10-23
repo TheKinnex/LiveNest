@@ -26,17 +26,18 @@ const Verify = () => {
                 const response = await axios.get(`https://livenest-backend.onrender.com/auth/verify`, {
                     params: { email, code }
                 });
-
+                
+                console.log(response.data.msg) 
+                console.log(response.data) 
                 setMessage(response.data.msg);
                 setLoading(false);
 
                 // Redirigir al login después de 3 segundos
                 setTimeout(() => {
                     navigate('/');
-                }, 3000);
+                }, 2000);
 
             } catch (error) {
-                setMessage('Hubo un problema al verificar tu cuenta.');
                 console.error(error);
                 setLoading(false);
             }

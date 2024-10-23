@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ const Register = () => {
 
     try {
       // Llamada a la API de registro
-      await axios.get('https://livenest-backend.onrender.com/auth/register', { email, password, username });
+      await axios.post('https://livenest-backend.onrender.com/auth/register', { email, password, username });
 
       // Mostrar el mensaje de éxito si el registro es exitoso
       setSuccessMessage('Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.');
@@ -40,7 +42,7 @@ const Register = () => {
           <h2 className=' text-xl font-semibold text-left'>LiveNest</h2>
           <h2 className=' text-xl font-semibold text-left mt-10'>Bienvenido!</h2>
         </div>
-        <form className=' flex flex-col mt-5 gap-y-5 ' onSubmit={handleSubmit}>
+        <form className=' flex flex-col mt-5 gap-y-5 w-80' onSubmit={handleSubmit}>
           <div className=' flex flex-col'>
             <label className=' text-xs pl-2'>Username</label>
             <input
@@ -79,12 +81,14 @@ const Register = () => {
           {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
           {/* Mostrar mensaje de éxito */}
-          {successMessage && <p className="text-green-500 text-sm">{successMessage}</p>}
+          {successMessage && <p className="text-green-500 text-sm break-words " >{successMessage}</p>}
 
           {/* Botón de enviar deshabilitado si está cargando */}
           <button className=' bg-purple-600 p-2 rounded-md font-medium' type="submit" disabled={loading}>
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
+
+          <span className='flex gap-2 text-xs text-blue-600' >Ya tienes una cuenta? <Link to={'/  '} className=' text-purple-600'>Iniciar Sesion</Link></span>
         </form>
       </div>
     </main>

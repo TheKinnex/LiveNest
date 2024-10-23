@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
+import { FaSmile, FaPaperPlane } from "react-icons/fa";
 
 const ConversationDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [username, setUsername] = useState("");
+  const messagesEndRef = useRef(null);
 
   // Obtener el token y el userId desde localStorage o sessionStorage
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -28,16 +31,39 @@ const ConversationDetail = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
+        
       } catch (error) {
         console.error("Error al cargar los mensajes:", error);
       }
     };
     fetchMessages();
 
+    // Obtener información de la conversación para mostrar el nombre del usuario
+    const fetchConversationInfo = async () => {
+      try {
+        const res = await axios.get(`https://livenest-backend.onrender.com/conversations/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        // Suponiendo que la API devuelve los usuarios en la conversación
+        const otherUser = res.data.users.find(user => user._id !== userId);
+        setUsername(otherUser ? otherUser.username : "Usuario");
+      } catch (error) {
+        console.error("Error al obtener información de la conversación:", error);
+      }
+    };
+    fetchConversationInfo();
+
     // Recibir mensajes en tiempo real
     socket.on("receiveMessage", (newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
+
+    // Scroll automático hacia el último mensaje
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    scrollToBottom();
 
     // Cleanup para evitar fugas de memoria
     return () => {
@@ -45,9 +71,15 @@ const ConversationDetail = () => {
       socket.emit("leaveConversation", id);
       socket.disconnect();
     };
-  }, [id, token]);
+  }, [id, token, userId]);
+
+  useEffect(() => {
+    // Scroll automático hacia el último mensaje cuando se actualizan los mensajes
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = async () => {
+    if (newMessage.trim() === "") return;
     try {
       await axios.post(
         `https://livenest-backend.onrender.com/messages/${id}/send`,
@@ -67,43 +99,67 @@ const ConversationDetail = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold">Conversation Detail</h2>
-      <ul className="mt-4 space-y-2">
-        {messages.map((message, index) => {
-          // Verifica si el mensaje fue enviado por el usuario actual
-          const isCurrentUser = String(message.sender._id) === String(userId);
+    <div className="flex flex-col h-screen"> {/* Cambié h-full a h-screen */}
+      {/* Encabezado del chat */}
+      <header className="bg-gray-800 p-4 flex items-center justify-between text-white">
+        <div className="flex items-center space-x-3">
+          <div className="bg-purple-600 h-10 w-10 rounded-full"></div>
+          <div>
+            <p className="font-semibold">{username}</p> {/* Nombre del otro usuario */}
+            <p className="text-sm text-green-400">En línea</p> {/* Estado "En línea" */}
+          </div>
+        </div>
+        <button onClick={handleLeaveConversation} className="text-red-500">Salir</button>
+      </header>
 
+      {/* Mensajes */}
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto no-scrollbar bg-gray-900">
+        {messages.map((message, index) => {
+          const isCurrentUser = String(message.sender._id) === String(userId);
           return (
-            <li
+            <div
               key={index}
-              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`} // Cambiar la alineación según el remitente
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`p-2 rounded-lg max-w-xs ${
-                  isCurrentUser ? 'bg-red-100 text-right' : 'bg-blue-100 text-left'
-                }`} // Cambiar el color y la alineación según el remitente
+                  isCurrentUser ? 'bg-purple-600 text-white' : 'bg-gray-700 text-white'
+                }`}
               >
-                <strong className={isCurrentUser ? "text-red-500" : "text-blue-500"}>
-                  {message.sender.username}:
-                </strong>
-                <p>{message.content}</p>
-                <span className="text-xs text-gray-500">{new Date(message.createdAt).toLocaleString()}</span>
+                {!isCurrentUser && (
+                  <strong className="block text-sm font-semibold">
+                    {message.sender.username}
+                  </strong>
+                )}
+                <p className="mt-1">{message.content}</p>
+                <span className="text-xs text-gray-300 block mt-1 text-right">
+                  {new Date(message.createdAt).toLocaleTimeString()}
+                </span>
               </div>
-            </li>
+            </div>
           );
         })}
-      </ul>
-      <div className="mt-4 flex items-center">
+        <div ref={messagesEndRef}></div>
+      </div>
+
+      {/* Input para enviar mensaje */}
+      <div className="bg-gray-800 p-4 flex items-center space-x-2 sticky bottom-0"> {/* Usar sticky para que se quede fijo */}
+        <FaSmile className="text-purple-500 cursor-pointer" />
         <input
-          className="flex-grow border rounded-md px-2 py-1"
           type="text"
-          placeholder="Escribe un mensaje..."
+          placeholder="Enviar mensaje..."
+          className="flex-grow bg-gray-700 text-white p-2 rounded-md focus:outline-none"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSendMessage();
+            }
+          }}
         />
-        <button onClick={handleSendMessage} className="ml-2 bg-green-500 text-white px-4 py-1 rounded-md">Enviar</button>
-        <button onClick={handleLeaveConversation} className="ml-2 bg-gray-500 text-white px-4 py-1 rounded-md">Salir</button>
+        <button onClick={handleSendMessage} className="text-purple-500">
+          <FaPaperPlane />
+        </button>
       </div>
     </div>
   );
