@@ -1,5 +1,6 @@
 import Message from "../models/Message.js";
 import Conversation from "../models/Conversation.js";
+import User from "../models/User.js";
 
 // @desc Enviar un mensaje
 // @route POST /message/:conversationId/send
@@ -33,6 +34,18 @@ export const sendMessage = async (req, res) => {
     // Añadir el mensaje a la conversación
     conversation.messages.push(savedMessage._id);
     await conversation.save();
+
+    // Obtener el username del remitente
+    const sender = await User.findById(req.user.id).select("username");
+
+    // Emitir el mensaje al frontend a través de socket.io
+    req.io.to(req.params.conversationId).emit("receiveMessage", {
+      content: savedMessage.content,
+      createdAt: savedMessage.createdAt,
+      sender: {
+        username: sender.username, // Incluimos el username del remitente
+      },
+    });
 
     res.status(201).json({ msg: "Mensaje enviado", message: savedMessage });
   } catch (err) {

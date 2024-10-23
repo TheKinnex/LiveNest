@@ -164,3 +164,9 @@ export const getPaymentHistory = async (req, res) => {
     res.status(500).json({ msg: "Error en el servidor al obtener el historial de pagos." });
   }
 };
+
+/* 
+
+es Genial que usaras el SDk de paypal
+
+*/

@@ -108,6 +108,12 @@ export const forgotPassword = async (req, res) => {
 
     // Enviar correo electrónico con el token
     const resetUrl = `${req.protocol}://${req.get("host")}/auth/reset-password/${resetToken}`;
+
+    /* 
+    
+    El mensaje deberia ser mas entendible para un usuario normal que no entienda de metodos Http
+  
+    */
     const message = `Recibiste este correo porque solicitaste restablecer la contraseña. Por favor, realiza un PUT a la siguiente URL: \n\n ${resetUrl}`;
 
     await sendEmail({
@@ -125,6 +131,14 @@ export const forgotPassword = async (req, res) => {
 
 // @desc Restablecer la contraseña
 // @route POST /auth/reset-password/:token
+
+/* 
+
+En este controlador deberia estar controlado al menos un error y la posterior respuesta
+por si el token esta expirado o es invalido para que el usuario se entere si perdio
+validez su token
+
+*/
 export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;

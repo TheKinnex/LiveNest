@@ -6,6 +6,8 @@ import fs from "fs-extra";
 
 // @desc Obtener el perfil de un usuario por su ID
 // @route GET /profile/:userId
+
+
 export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -24,6 +26,13 @@ export const getUserProfile = async (req, res) => {
 
 // @desc Actualizar el perfil de un usuario
 // @route PATCH /profile/:userId
+
+/* 
+
+Seria bueno que el usuario tambien pudiera actualizar su contraseña desde su perfil
+ya esta logguado asi que la verificacion ya fue hecha de forma implicita
+
+*/
 export const updateUserProfile = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -149,6 +158,59 @@ export const unfollowUser = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
+/* 
+
+Podrias tener un solo controlador que se encargara de seguir o dejar de seguir
+un usuario segun el caso por ejemplo:
+
+// @desc Seguir o dejar de seguir a un usuario
+// @route POST /profile/:userId/toggleFollow
+export const toggleFollowUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Verificar si el usuario intenta seguirse o dejar de seguirse a sí mismo
+    if (req.user.id === userId) {
+      return res.status(400).json({ msg: "No puedes seguirte o dejar de seguirte a ti mismo" });
+    }
+
+    // Buscar ambos usuarios: el que está haciendo la acción y el que será seguido/dejado de seguir
+    const user = await User.findById(req.user.id);
+    const targetUser = await User.findById(userId);
+
+    if (!targetUser) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    // Verificar si ya sigue al usuario objetivo
+    const alreadyFollowing = user.following.includes(userId);
+
+    if (alreadyFollowing) {
+      // Dejar de seguir: eliminar del array de following y followers
+      user.following = user.following.filter((id) => id.toString() !== userId);
+      targetUser.followers = targetUser.followers.filter((id) => id.toString() !== req.user.id);
+
+      await Promise.all([user.save(), targetUser.save()]);
+
+      return res.json({ msg: `Has dejado de seguir a ${targetUser.username}` });
+    } else {
+      // Seguir: agregar al array de following y followers
+      user.following.push(userId);
+      targetUser.followers.push(req.user.id);
+
+      await Promise.all([user.save(), targetUser.save()]);
+
+      return res.json({ msg: `Ahora sigues a ${targetUser.username}` });
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
+
+
+*/
 
 // @desc Obtener la lista de seguidores de un usuario
 // @route GET /profile/:userId/followers

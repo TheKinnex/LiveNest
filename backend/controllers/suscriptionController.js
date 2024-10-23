@@ -12,6 +12,13 @@ export const listSubscriptions = async (req, res) => {
       return res.status(404).json({ msg: "Canal no encontrado" });
     }
 
+    /* 
+    
+    plans podrias separarlo en un archivo aparte en util para mejorar la legibilidad
+    del codigo
+    
+    */
+
     // Listar los dos planes disponibles
     const plans = [
       {
