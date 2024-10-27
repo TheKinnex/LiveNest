@@ -27,6 +27,13 @@ const Verify = () => {
                     params: { email, code }
                 });
                 
+                /* 
+                
+                Nuevo Feedback: para dev esta bien sin embargo para 
+                produccion evita dejar console.log que puedan mostrar datos
+                que no deberian ser mostrados
+                
+                */
                 console.log(response.data.msg) 
                 console.log(response.data) 
                 setMessage(response.data.msg);

@@ -13,6 +13,8 @@ const App = () => {
     <Router>
       <Routes>
         {/* Rutas sin Layout */}
+        {/* Tu ruta "/" no deberia ser Login pues es normalmente asociado
+        a la ruta donde se muestra el Home */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify" element={<Verify />} />

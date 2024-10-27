@@ -43,6 +43,13 @@ app.use(
   })
 );
 
+
+/* 
+
+Nuevo feedback: ya que tienes una carpeta middleware, deberias
+guardar el midddleware en un archivo aparte alli
+
+*/
 // Middleware para compartir la instancia de io con todas las rutas
 app.use((req, res, next) => {
   req.io = io;
@@ -61,6 +68,14 @@ app.use("/suscription", suscriptionRoutes);
 
 const PORT = process.env.PORT || 5000;
 
+/* 
+
+Nuevo feedback: ya que tienes una carpeta middleware, deberias
+guardar el midddleware en un archivo aparte alli, para mantener tu index, lo 
+mas limpio posible
+
+*/
+
 // Middleware de autenticación para Socket.io
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
@@ -76,6 +91,14 @@ io.use((socket, next) => {
     return next(new Error("Acceso no autorizado. Token inválido."));
   }
 });
+
+/* 
+
+Este manejo de eventos lo podrias guardar en un archivo aparte 
+en la carpeta controllers o crear una carpeta helper y guardar 
+toda la logica de middlewares en esta
+
+*/
 
 // Manejo de eventos con Socket.io
 io.on("connection", (socket) => {

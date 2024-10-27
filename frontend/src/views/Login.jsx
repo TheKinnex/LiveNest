@@ -11,6 +11,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false); // Estado para el indicador de carga
   const navigate = useNavigate();
 
+   /* 
+  
+  Nuevo Feedback: No estas realizando la validacion de los inputs, te recomiendo 
+  hacerlo en el backend y en el frontend y luego 
+  mostrar el mensaje de error en el frontend de existir algun error en algun campo
+  
+  */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Mostrar indicador de carga
@@ -28,6 +36,11 @@ const Login = () => {
         sessionStorage.setItem('userId', response.data.user.id);  // Guarda el ID del usuario autenticado
       }
 
+      /* 
+      
+      Te recomiendo que la redireccion sea hacia el Home o Feed tu aplicacion
+
+      */
       // Redirigir a la página de conversaciones
       navigate('/conversations');
     } catch (error) {

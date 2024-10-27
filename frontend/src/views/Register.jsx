@@ -11,6 +11,14 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(''); // Estado para el mensaje de éxito
 
+
+  /* 
+  
+  Nuevo Feedback: No estas realizando la validacion de los inputs, te recomiendo 
+  hacerlo en el backend y en el frontend y luego 
+  mostrar el mensaje de error en el frontend de existir algun error en algun campo
+  
+  */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Mostrar indicador de carga

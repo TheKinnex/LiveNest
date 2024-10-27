@@ -1,5 +1,12 @@
 // controllers/conversationController.js
 import Conversation from "../models/Conversation.js";
+
+
+/* 
+
+Nuevo feedback: evita importar dependencias innecesarias
+
+*/
 import User from "../models/User.js";
 
 // @desc Crear una nueva conversación

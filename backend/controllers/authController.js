@@ -4,6 +4,11 @@ import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
 import sendEmail from "../utils/sendEmail.js";
 import { uploadImage } from "../utils/cloudinary.js";
+/* 
+
+Nuevo feedback: evita importar dependencias innecesarias
+
+*/
 import dotenv from "dotenv";
 import fs from "fs-extra";
 import crypto from "crypto"; // Importar para generar el código de verificación
