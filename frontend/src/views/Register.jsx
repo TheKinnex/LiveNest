@@ -2,34 +2,71 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
-
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(''); // Estado para el mensaje de éxito
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Expresiones regulares para validaciones
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usernameRegex = /^[a-zA-Z0-9_]+$/; // Sin espacios ni caracteres especiales
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.]).{8,}$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Mostrar indicador de carga
-    setErrorMessage(''); // Limpiar mensaje de error previo
-    setSuccessMessage(''); // Limpiar mensaje de éxito previo
+    setErrorMessage(''); 
+    setSuccessMessage(''); 
+
+    // Validar que no haya espacios en blanco
+    if (/\s/.test(email) || /\s/.test(username) || /\s/.test(password)) {
+      setErrorMessage('Los campos no pueden contener espacios en blanco.');
+      return;
+    }
+
+    // Validar formato de correo
+    if (!emailRegex.test(email)) {
+      setErrorMessage('Por favor, ingresa un correo válido.');
+      return;
+    }
+
+    // Validar formato de nombre de usuario
+    if (!usernameRegex.test(username)) {
+      setErrorMessage('El nombre de usuario solo puede contener letras, números y guiones bajos.');
+      return;
+    }
+
+    // Validar formato de contraseña
+    if (!passwordRegex.test(password)) {
+      setErrorMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       // Llamada a la API de registro
       await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { email, password, username });
 
-      // Mostrar el mensaje de éxito si el registro es exitoso
       setSuccessMessage('Registro exitoso. Por favor, revisa tu correo para verificar tu cuenta.');
     } catch (error) {
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.msg);
+        if (error.response.status === 400) {
+          if (error.response.data.msg === 'Este username ya está ocupado') {
+            setErrorMessage('El nombre de usuario ya está ocupado, elige otro.');
+          } else if (error.response.data.msg === 'El correo ya está vinculado a una cuenta') {
+            setErrorMessage('El correo ya está registrado, intenta iniciar sesión o usa otro correo.');
+          } else {
+            setErrorMessage(error.response.data.msg);
+          }
+        } else {
+          setErrorMessage('Hubo un error en la solicitud. Intenta nuevamente.');
+        }
       } else {
-        setErrorMessage('Error al registrarse. Por favor, intenta nuevamente.');
+        setErrorMessage('Error de conexión con el servidor. Intenta más tarde.');
       }
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -49,7 +86,7 @@ const Register = () => {
               className=' w-80 h-12 rounded-md p-2 text-black '
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value.trim())} // Evitar espacios
               placeholder="Username"
               required
             />
@@ -60,7 +97,7 @@ const Register = () => {
               className=' w-80 h-12 rounded-md p-2 text-black '
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())} // Evitar espacios
               placeholder="Correo"
               required
             />
@@ -71,7 +108,7 @@ const Register = () => {
               className='w-80 h-12 rounded-md p-2 text-black'
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value.trim())} // Evitar espacios
               placeholder="Contraseña"
               required
             />
@@ -81,14 +118,14 @@ const Register = () => {
           {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
 
           {/* Mostrar mensaje de éxito */}
-          {successMessage && <p className="text-green-500 text-sm break-words " >{successMessage}</p>}
+          {successMessage && <p className="text-green-500 text-sm break-words ">{successMessage}</p>}
 
           {/* Botón de enviar deshabilitado si está cargando */}
           <button className=' bg-purple-600 p-2 rounded-md font-medium' type="submit" disabled={loading}>
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
 
-          <span className='flex gap-2 text-xs text-blue-600' >Ya tienes una cuenta? <Link to={'/  '} className=' text-purple-600'>Iniciar Sesion</Link></span>
+          <span className='flex gap-2 text-xs text-blue-600' >Ya tienes una cuenta? <Link to={'/'} className=' text-purple-600'>Iniciar Sesión</Link></span>
         </form>
       </div>
     </main>
