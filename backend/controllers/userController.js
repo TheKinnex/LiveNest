@@ -10,10 +10,10 @@ import bcrypt from "bcrypt";
 // @route GET /profile/current
 export const getCurrentUserProfile = async (req, res) => {
   try {
-    // Si `username` se pasa como parámetro en la URL, realiza la búsqueda por `username`
-    const { username } = req.params;
+    // Obtener el ID del usuario autenticado desde el middleware de autenticación
+    const userId = req.user.id;
 
-    const user = await User.findOne({ username, isDelete: false }) // Buscar por `username` en lugar de `_id`
+    const user = await User.findById(userId)
       .select("-password") // Excluir el campo de contraseña
       .populate({
         path: "posts",
@@ -44,7 +44,6 @@ export const getCurrentUserProfile = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
-
 
 
 // @desc Buscar usuarios por nombre de usuario

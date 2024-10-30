@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import { useEffect, useState } from 'react';
 import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -17,17 +18,25 @@ const Sidebar = () => {
         const fetchCurrentUserProfile = async () => {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                if (!token) {
+                    // Si no hay token, redirigir a login
+                    navigate('/login');
+                    return;
+                }
+
                 const response = await axios.get(`${import.meta.env.VITE_API_URL}/profile/current`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUsername(response.data.username);
             } catch (error) {
                 console.error("Error al obtener el perfil del usuario:", error);
+                // Opcional: redirigir a login si hay un error de autenticación
+                navigate('/login');
             }
         };
         
         fetchCurrentUserProfile();
-    }, []);
+    }, [navigate]);
 
     const handleProfileClick = () => {
         if (username) {
@@ -62,7 +71,7 @@ const Sidebar = () => {
                         </Link>
                         <Link 
                             to="/create-post" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/explore') ? 'bg-gray-700' : ''}`} 
+                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/create-post') ? 'bg-gray-700' : ''}`} 
                             aria-label="Post"
                         >
                             <FaPlus className="mr-3" />
@@ -70,7 +79,7 @@ const Sidebar = () => {
                         </Link>
                         <Link 
                             to="/conversations" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/messages') ? 'bg-gray-700' : ''}`} 
+                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/conversations') ? 'bg-gray-700' : ''}`} 
                             aria-label="Mensajes"
                         >
                             <FaEnvelope className="mr-3" />
@@ -106,14 +115,14 @@ const Sidebar = () => {
                 </Link>
                 <Link 
                     to="/create-post" 
-                    className={`flex flex-col items-center ${isActive('/explore') ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="create post"
+                    className={`flex flex-col items-center ${isActive('/create-post') ? 'text-purple-500' : 'text-gray-400'}`} 
+                    aria-label="Crear Post"
                 >
                     <FaPlus className="text-xl" />
                 </Link>
                 <Link 
                     to="/conversations" 
-                    className={`flex flex-col items-center ${isActive('/messages') ? 'text-purple-500' : 'text-gray-400'}`} 
+                    className={`flex flex-col items-center ${isActive('/conversations') ? 'text-purple-500' : 'text-gray-400'}`} 
                     aria-label="Mensajes"
                 >
                     <FaEnvelope className="text-xl" />
@@ -128,6 +137,7 @@ const Sidebar = () => {
             </div>
         </>
     );
+
 };
 
 export default Sidebar;
