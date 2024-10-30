@@ -10,10 +10,10 @@ import bcrypt from "bcrypt";
 // @route GET /profile/current
 export const getCurrentUserProfile = async (req, res) => {
   try {
-    // Verificar que el ID de usuario existe en la solicitud
-    const userId = req.user.id; // Asumimos que req.user.id es configurado por el middleware de autenticación
+    // Si `username` se pasa como parámetro en la URL, realiza la búsqueda por `username`
+    const { username } = req.params;
 
-    const user = await User.findOne({ _id: userId, isDelete: false })
+    const user = await User.findOne({ username, isDelete: false }) // Buscar por `username` en lugar de `_id`
       .select("-password") // Excluir el campo de contraseña
       .populate({
         path: "posts",
@@ -31,7 +31,7 @@ export const getCurrentUserProfile = async (req, res) => {
       .populate("followers", "username profilePicture")
       .populate("following", "username profilePicture");
 
-    // Verificar si el usuario existe y no está eliminado
+    // Verificar si el usuario existe
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado o eliminado" });
     }
@@ -44,6 +44,7 @@ export const getCurrentUserProfile = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 
 // @desc Buscar usuarios por nombre de usuario
