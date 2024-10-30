@@ -10,13 +10,13 @@ import bcrypt from "bcrypt";
 // @route GET /profile/current
 export const getCurrentUserProfile = async (req, res) => {
   try {
-    const userId = req.user.id; 
+    // Extrae el `userId` desde el token de autenticación
+    const userId = req.user.id;
 
     const user = await User.findOne({ _id: userId, isDelete: false })
-      .select("-password")
+      .select("-password") // Excluye el campo de contraseña
       .populate({
         path: "posts",
-        model: "Post",
         match: { isDelete: false },
         populate: [
           { path: "author", select: "username profilePicture" },
@@ -40,6 +40,7 @@ export const getCurrentUserProfile = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 
 

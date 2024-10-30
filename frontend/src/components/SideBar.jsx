@@ -1,8 +1,7 @@
 // src/components/Sidebar.jsx
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Sidebar = () => {
     const location = useLocation();
@@ -13,30 +12,6 @@ const Sidebar = () => {
     const isActive = (path) => {
         return location.pathname === path;
     };
-
-    useEffect(() => {
-        const fetchCurrentUserProfile = async () => {
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (!token) {
-                    // Si no hay token, redirigir a login
-                    navigate('/login');
-                    return;
-                }
-
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/profile/current`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setUsername(response.data.username);
-            } catch (error) {
-                console.error("Error al obtener el perfil del usuario:", error);
-                // Opcional: redirigir a login si hay un error de autenticación
-                navigate('/login');
-            }
-        };
-        
-        fetchCurrentUserProfile();
-    }, [navigate]);
 
     const handleProfileClick = () => {
         if (username) {
