@@ -18,6 +18,12 @@ const ConversationDetail = () => {
   const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
   useEffect(() => {
+
+    if (!token) {
+      navigate('/login'); // Redirigir a login si no hay token
+      return;
+    }
+    
     const socket = io(`${import.meta.env.VITE_API_URL}`, {
       auth: { token },
     });
@@ -73,7 +79,7 @@ const ConversationDetail = () => {
       socket.emit("leaveConversation", id);
       socket.disconnect();
     };
-  }, [id, token, userId]);
+  }, [id, navigate, token, userId]);
 
   useEffect(() => {
     // Scroll automático hacia el último mensaje cuando se actualizan los mensajes

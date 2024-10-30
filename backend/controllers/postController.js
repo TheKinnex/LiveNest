@@ -1,4 +1,5 @@
 import Post from "../models/Post.js";
+import Report from "../models/Report.js";
 import User from "../models/User.js";
 import Comment from "../models/Comment.js";
 import { uploadImage } from "../utils/cloudinary.js";
@@ -64,19 +65,13 @@ export const createPost = async (req, res) => {
 };
 
 
-/* 
-
-Seria bueno que mezclaras entre seguidores y recomendaciones, estaria interesante
-ese algoritmo
-
-*/
 // @desc Obtener el feed de publicaciones (usuarios seguidos + recomendaciones)
 // @route GET /feed
 export const getFeed = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Obtener el usuario autenticado
+    // Obtener el usuario autenticado y sus seguidores
     const user = await User.findById(userId).populate("following", "username");
 
     if (!user) {
@@ -90,34 +85,41 @@ export const getFeed = async (req, res) => {
       isDelete: false,
     })
       .sort({ createdAt: -1 })
-      .limit(20) // Limitar el número de publicaciones a 20
-      .populate("author", "username profilePicture");
+      .limit(10) // Limitar el número de publicaciones seguidas a 10 inicialmente
+      .populate("author", "username profilePicture")
+      .populate({
+        path: "comments",
+        match: { isDelete: false }, // Solo mostrar comentarios que no estén eliminados
+        populate: { path: "author", select: "username profilePicture" }, // Popular el autor de cada comentario
+      });
 
-    // Si no hay suficientes publicaciones, generar recomendaciones basadas en tags
-    if (posts.length === 0) {
+    // Si no hay suficientes publicaciones de seguidos, buscar recomendaciones
+    if (posts.length < 20) {
       // Encontrar los tags más comunes en las publicaciones del usuario
       const userPosts = await Post.find({ author: userId, isDelete: false });
       const userTags = userPosts.flatMap((post) => post.tags);
 
-      // Encontrar publicaciones similares basadas en tags
-      let recommendations = await Post.find({
-        tags: { $in: userTags }, // Basado en tags similares
-        author: { $ne: userId }, // No incluir los posts del propio usuario
+      // Obtener publicaciones de recomendación basadas en tags
+      const recommendations = await Post.find({
+        tags: { $in: userTags }, // Tags similares a los del usuario
+        author: { $nin: [...followedUserIds, userId] }, // Excluir posts del propio usuario y de seguidos
         isDelete: false,
       })
         .sort({ createdAt: -1 })
-        .limit(20)
-        .populate("author", "username profilePicture");
+        .limit(20 - posts.length) // Completar hasta llegar a 20 posts en total
+        .populate("author", "username profilePicture")
+        .populate({
+          path: "comments",
+          match: { isDelete: false }, // Solo mostrar comentarios que no estén eliminados
+          populate: { path: "author", select: "username profilePicture" }, // Popular el autor de cada comentario
+        });
 
-      // Enviar recomendaciones si no hay posts de los seguidos
-      return res.json({
-        msg: "Recomendaciones basadas en tus tags",
-        posts: recommendations,
-      });
+      // Mezclar publicaciones seguidas y recomendaciones
+      posts = [...posts, ...recommendations];
     }
 
-    // Si hay posts de los seguidos, enviarlos
-    res.json({ msg: "Publicaciones de usuarios seguidos", posts });
+    // Enviar las publicaciones mezcladas en el feed
+    res.json({ msg: "Feed de publicaciones", posts });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
@@ -180,7 +182,7 @@ export const getPost = async (req, res) => {
 };
 
 // @desc Dar o quitar like de un post
-// @route POST /posts/:postId/like
+// @route POST /posts/:postId/toggleLike
 export const toggleLikePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.postId);
@@ -249,16 +251,30 @@ export const commentPost = async (req, res) => {
     post.comments.push(newComment._id);
     await post.save();
 
+    // Obtener los detalles del autor (usuario autenticado)
+    const authorDetails = await User.findById(req.user.id).select('username profilePicture');
+
+    // Agregar los detalles del autor al comentario antes de enviarlo al frontend
+    const commentWithAuthor = {
+      ...newComment.toObject(),
+      author: {
+        _id: authorDetails._id,
+        username: authorDetails.username,
+        profilePicture: authorDetails.profilePicture,
+      },
+    };
+
     res.status(201).json({
       msg: "Comentario agregado exitosamente",
       post,
-      comment: newComment,
+      comment: commentWithAuthor,
     });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 // @desc Actualizar el contenido de un post (solo la descripción, y tags solo el autor puede actualizarlo)
 // @route PATCH /posts/:postId

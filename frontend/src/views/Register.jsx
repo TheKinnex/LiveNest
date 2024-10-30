@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importar iconos
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,8 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar contraseña
 
   // Expresiones regulares para validaciones
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -102,16 +105,23 @@ const Register = () => {
               required
             />
           </div>
-          <div className='flex flex-col'>
+          <div className='flex flex-col relative'>
             <label className=' text-xs pl-2'>Contraseña</label>
             <input
               className='w-80 h-12 rounded-md p-2 text-black'
-              type="password"
+              type={showPassword ? "text" : "password"} // Cambiar tipo según estado
               value={password}
               onChange={(e) => setPassword(e.target.value.trim())} // Evitar espacios
               placeholder="Contraseña"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-8 text-gray-500 hover:text-gray-300 focus:outline-none"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />} {/* Mostrar icono según estado */}
+            </button>
           </div>
 
           {/* Mostrar mensaje de error */}
@@ -125,7 +135,9 @@ const Register = () => {
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
 
-          <span className='flex gap-2 text-xs text-blue-600' >Ya tienes una cuenta? <Link to={'/'} className=' text-purple-600'>Iniciar Sesión</Link></span>
+          <span className='flex gap-2 text-xs text-blue-600' >
+            Ya tienes una cuenta? <Link to={'/'} className=' text-purple-600'>Iniciar Sesión</Link>
+          </span>
         </form>
       </div>
     </main>

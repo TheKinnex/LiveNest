@@ -27,7 +27,7 @@ router.get('/feed', authMiddleware, getFeed);
 router.get("/:postId", authMiddleware, getPost)
 
 // Ruta para dar o quitar like de un post
-router.post("/:postId/like", authMiddleware, toggleLikePost);
+router.post("/:postId/toggleLike", authMiddleware, toggleLikePost);
 
 // Ruta para comentar en un post
 router.post("/:postId/comment", authMiddleware, commentPost);

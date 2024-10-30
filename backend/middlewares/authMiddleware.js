@@ -21,16 +21,7 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(404).json({ msg: 'Cuenta no encontrada' });
     }
 
-    /* 
-    
-    aqui esta de nuevo el error de la propiedad "isDeleted" que no existe
-    
-    */
-    /* if (user.isDeleted) {
-      return res.status(403).json({ msg: 'Tu cuenta ha sido eliminada' });
-    } */
-
-    if (user.isDelete) {
+    if (user.isDeleted) {
       return res.status(403).json({ msg: 'Tu cuenta ha sido eliminada' });
     }
 

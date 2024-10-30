@@ -167,7 +167,7 @@ export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
+      return res.status(404).json({ msg: "No encontramos una cuenta con ese correo electrónico." });
     }
 
     // Generar un token de restablecimiento
@@ -176,40 +176,37 @@ export const forgotPassword = async (req, res) => {
     });
 
     // Enviar correo electrónico con el token
-    const resetUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/auth/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONT_URL}/reset-password/${resetToken}`;
 
-    /* 
-    
-    El mensaje deberia ser mas entendible para un usuario normal que no entienda de metodos Http
-  
-    */
-    const message = `Recibiste este correo porque solicitaste restablecer la contraseña. Por favor, realiza un PUT a la siguiente URL: \n\n ${resetUrl}`;
+    const message = `
+      ¡Hola ${user.username}!
+
+      Recibiste este correo porque solicitaste restablecer tu contraseña.
+
+      Por favor, haz clic en el siguiente enlace o pégalo en tu navegador para continuar:
+
+      ${resetUrl}
+
+      Este enlace expirará en una hora. Si no solicitaste este cambio, puedes ignorar este correo.
+
+      ¡Gracias!
+    `;
 
     await sendEmail({
       email: user.email,
-      subject: "Recuperación de contraseña",
+      subject: "Restablece tu contraseña en LiveNest",
       message,
     });
 
-    res.status(200).json({ msg: "Correo de recuperación enviado" });
+    res.status(200).json({ msg: "Te enviamos un correo electrónico con instrucciones para restablecer tu contraseña." });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Error en el servidor");
+    res.status(500).send("Hubo un error en el servidor.");
   }
 };
 
 // @desc Restablecer la contraseña
 // @route POST /auth/reset-password/:token
-
-/* 
-
-En este controlador deberia estar controlado al menos un error y la posterior respuesta
-por si el token esta expirado o es invalido para que el usuario se entere si perdio
-validez su token
-
-*/
 export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
@@ -219,7 +216,7 @@ export const resetPassword = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     let user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(400).json({ msg: "Token inválido o expirado" });
+      return res.status(400).json({ msg: "Este enlace de restablecimiento es inválido o ha expirado." });
     }
 
     // Encriptar la nueva contraseña
@@ -227,9 +224,13 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
-    res.status(200).json({ msg: "Contraseña restablecida exitosamente" });
+    res.status(200).json({ msg: "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña." });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Error en el servidor");
+    if (err.name === "TokenExpiredError") {
+      return res.status(400).json({ msg: "Este enlace de restablecimiento ha expirado. Por favor, solicita uno nuevo." });
+    }
+    res.status(400).json({ msg: "Este enlace de restablecimiento es inválido." });
   }
 };
+

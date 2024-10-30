@@ -3,11 +3,51 @@ import User from "../models/User.js";
 import { validationResult } from "express-validator";
 import { uploadImage, deleteImage } from "../utils/cloudinary.js";
 import fs from "fs-extra";
+import bcrypt from "bcrypt";
 
+
+// @desc Obtener el perfil actual del usuario autenticado
+// @route GET /profile/current
+export const getCurrentUserProfile = async (req, res) => {
+  try {
+    // Verificar que el ID de usuario existe en la solicitud
+    const userId = req.user.id; // Asumimos que req.user.id es configurado por el middleware de autenticación
+
+    const user = await User.findOne({ _id: userId, isDelete: false })
+      .select("-password") // Excluir el campo de contraseña
+      .populate({
+        path: "posts",
+        model: "Post",
+        match: { isDelete: false }, // Solo incluir posts que no están eliminados
+        populate: [
+          { path: "author", select: "username profilePicture" },
+          { path: "likes", select: "username" },
+          {
+            path: "comments",
+            populate: { path: "author", select: "username profilePicture" }
+          }
+        ]
+      })
+      .populate("followers", "username profilePicture")
+      .populate("following", "username profilePicture");
+
+    // Verificar si el usuario existe y no está eliminado
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado o eliminado" });
+    }
+
+    // Excluir la contraseña del objeto de respuesta y devolver el perfil del usuario
+    const { password, ...userProfile } = user.toObject();
+    res.json(userProfile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
 
 
 // @desc Buscar usuarios por nombre de usuario
-// @route GET /users?username=xxx
+// @route GET /profile/users?username=xxx
 export const searchUsers = async (req, res) => {
   try {
     const { username } = req.query;
@@ -29,17 +69,33 @@ export const searchUsers = async (req, res) => {
   }
 };
 
-// @desc Obtener el perfil de un usuario por su ID
-// @route GET /profile/:userId
+// @desc Obtener el perfil de un usuario por su username
+// @route GET /profile/:username
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findOne({
-      _id: req.params.userId,
-      isDelete: false,
-    }).select("-password");
+    const { username } = req.params;
+
+    // Buscar el usuario por username e incluir los detalles de los posts
+    const user = await User.findOne({ username, isDelete: false })
+      .select("-password")
+      .populate({
+        path: "posts",
+        model: "Post",
+        match: { isDelete: false }, // Solo posts que no están eliminados
+        populate: [
+          { path: "author", select: "username profilePicture" }, // Obtener detalles del autor
+          { path: "likes", select: "username" },                 // Obtener lista de usuarios que dieron like
+          {
+            path: "comments",
+            populate: { path: "author", select: "username profilePicture" } // Obtener detalles de comentarios y autores de los mismos
+          }
+        ]
+      });
+
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
+
     res.json(user);
   } catch (err) {
     console.error(err.message);
@@ -49,13 +105,6 @@ export const getUserProfile = async (req, res) => {
 
 // @desc Actualizar el perfil de un usuario
 // @route PATCH /profile/:userId
-
-/* 
-
-Seria bueno que el usuario tambien pudiera actualizar su contraseña desde su perfil
-ya esta logguado asi que la verificacion ya fue hecha de forma implicita
-
-*/
 export const updateUserProfile = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -63,42 +112,61 @@ export const updateUserProfile = async (req, res) => {
   }
 
   try {
-    let user = await User.findById(req.params.userId);
+    // Verificar que el usuario está intentando actualizar su propio perfil
+    if (req.user.id !== req.params.userId) {
+      return res.status(403).json({ msg: "Acción no autorizada" });
+    }
 
+    const { username, bio, password, confirmPassword } = req.body;
+
+    // Verificar si el nuevo nombre de usuario ya está en uso por otro usuario
+    if (username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser && existingUser._id.toString() !== req.user.id) {
+        return res.status(400).json({ msg: "Este nombre de usuario ya está en uso" });
+      }
+    }
+
+    let user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
-    // Actualizar solo los campos permitidos
-    const { username, bio } = req.body;
+    // Actualizar campos permitidos
     user.username = username || user.username;
     user.bio = bio || user.bio;
 
-    if (req.files?.img) {
-
-      if (user.profilePicture?.public_id) {
-        await deleteImage(user.profilePicture.public_id); // Solo eliminar si hay un public_id definido
+    // Validar y actualizar contraseña si se proporciona
+    if (password && confirmPassword) {
+      if (password !== confirmPassword) {
+        return res.status(400).json({ msg: "Las contraseñas no coinciden" });
       }
-      const result = await uploadImage(
-        req.files.img.tempFilePath,
-        "profilesImg"
-      );
-      user.profilePicture = {
-        public_id: result.public_id,
-        secure_url: result.secure_url,
-      };
+      if (password.length < 6) {
+        return res.status(400).json({ msg: "La contraseña debe tener al menos 6 caracteres" });
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
 
-      await fs.unlink(req.files.img.tempFilePath);
+    // Actualizar la foto de perfil si es necesario
+    if (req.files?.img) {
+      if (user.profilePicture?.public_id) {
+        await deleteImage(user.profilePicture.public_id);
+      }
+      const result = await uploadImage(req.files.img.tempFilePath, "profilesImg");
+      user.profilePicture = { public_id: result.public_id, secure_url: result.secure_url };
+      await fs.promises.unlink(req.files.img.tempFilePath);
     }
 
     await user.save();
-
-    res.json({ msg: "Perfil actualizado con éxito", user });
+    const { password: pwd, ...userData } = user.toObject();
+    res.json({ msg: "Perfil actualizado con éxito", user: userData });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 // @desc Eliminar perfil de usuario
 // @route DELETE /profile/:userId
@@ -111,81 +179,6 @@ export const deleteUserProfile = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
-
-// @desc Seguir a otro usuario
-// @route POST /profile/:userId/follow
-export const followUser = async (req, res) => {
-  try {
-    if (req.user.id === req.params.userId) {
-      return res.status(400).json({ msg: "No puedes seguirte a ti mismo" });
-    }
-
-    const user = await User.findById(req.user.id);
-    const userToFollow = await User.findById(req.params.userId);
-
-    if (!userToFollow) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
-
-    if (user.following.includes(req.params.userId)) {
-      return res.status(400).json({ msg: "Ya sigues a este usuario" });
-    }
-
-    user.following.push(req.params.userId);
-    userToFollow.followers.push(req.user.id);
-
-    await user.save();
-    await userToFollow.save();
-
-    res.json({ msg: `Ahora sigues a ${userToFollow.username}` });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Error en el servidor");
-  }
-};
-
-// @desc Dejar de seguir a otro usuario
-// @route POST /profile/:userId/unfollow
-export const unfollowUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const userToUnfollow = await User.findById(req.params.userId);
-
-    if (req.user.id === req.params.userId) {
-      return res.status(400).json({
-        msg: "No puedes dejar de seguirte a ti mismo porque no te sigues",
-      });
-    }
-
-    if (!userToUnfollow) {
-      return res.status(404).json({ msg: "Usuario no encontrado" });
-    }
-
-    if (!user.following.includes(req.params.userId)) {
-      return res.status(400).json({ msg: "No sigues a este usuario" });
-    }
-
-    user.following = user.following.filter(
-      (id) => id.toString() !== req.params.userId
-    );
-    userToUnfollow.followers = userToUnfollow.followers.filter(
-      (id) => id.toString() !== req.user.id
-    );
-
-    await user.save();
-    await userToUnfollow.save();
-
-    res.json({ msg: `Has dejado de seguir a ${userToUnfollow.username}` });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Error en el servidor");
-  }
-};
-
-/* 
-
-Podrias tener un solo controlador que se encargara de seguir o dejar de seguir
-un usuario segun el caso por ejemplo:
 
 // @desc Seguir o dejar de seguir a un usuario
 // @route POST /profile/:userId/toggleFollow
@@ -216,7 +209,7 @@ export const toggleFollowUser = async (req, res) => {
 
       await Promise.all([user.save(), targetUser.save()]);
 
-      return res.json({ msg: `Has dejado de seguir a ${targetUser.username}` });
+      return res.json({ msg: `Has dejado de seguir a ${targetUser.username}`, following: false });
     } else {
       // Seguir: agregar al array de following y followers
       user.following.push(userId);
@@ -224,7 +217,7 @@ export const toggleFollowUser = async (req, res) => {
 
       await Promise.all([user.save(), targetUser.save()]);
 
-      return res.json({ msg: `Ahora sigues a ${targetUser.username}` });
+      return res.json({ msg: `Ahora sigues a ${targetUser.username}`, following: true });
     }
   } catch (err) {
     console.error(err.message);
@@ -232,8 +225,6 @@ export const toggleFollowUser = async (req, res) => {
   }
 };
 
-
-*/
 
 // @desc Obtener la lista de seguidores de un usuario
 // @route GET /profile/:userId/followers

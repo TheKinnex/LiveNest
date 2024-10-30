@@ -25,7 +25,7 @@ const Conversations = () => {
     const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
 
     if (!token) {
-      navigate('/');
+      navigate('/login');
       return;
     }
 

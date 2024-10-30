@@ -5,22 +5,26 @@ import {
   getUserProfile,
   updateUserProfile,
   deleteUserProfile,
-  followUser,
-  unfollowUser,
+  toggleFollowUser,
   getFollowers,      
   getFollowing,   
-  searchUsers   
+  searchUsers,
+  getCurrentUserProfile
+     
 } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authorizationMiddleware } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
+// Ruta para obtener la cuenta actual
+router.get("/current", authMiddleware, getCurrentUserProfile);
+
 // Ruta para buscar usuarios por nombre de usuario
 router.get('/users', authMiddleware, searchUsers);
 
 // Ver perfil de un usuario (excluir perfiles eliminados)
-router.get('/:userId', authMiddleware, getUserProfile);
+router.get('/:username', authMiddleware, getUserProfile);
 
 // Obtener lista de seguidores de un usuario
 router.get('/:userId/followers', authMiddleware, getFollowers);
@@ -34,8 +38,15 @@ router.patch(
   authMiddleware,
   authorizationMiddleware,
   [
-    check('username', 'El nombre de usuario es obligatorio y debe tener al menos 3 caracteres').optional().isLength({ min: 3 }),
-    check('bio', 'La biografía no puede tener más de 150 caracteres').optional().isLength({ max: 150 }),
+    check('username', 'El nombre de usuario debe tener al menos 3 caracteres').optional().isLength({ min: 3 }),
+    check('bio', 'La biografía no debe exceder 150 caracteres').optional().isLength({ max: 150 }),
+    check('password', 'La contraseña debe tener al menos 6 caracteres').optional().isLength({ min: 6 }),
+    check('confirmPassword', 'Confirma tu contraseña').optional().custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Las contraseñas no coinciden');
+      }
+      return true;
+    }),
   ],
   updateUserProfile
 );
@@ -44,9 +55,7 @@ router.patch(
 router.delete('/:userId', authMiddleware, authorizationMiddleware, deleteUserProfile);
 
 // Seguir a otro usuario
-router.post('/:userId/follow', authMiddleware, followUser);
+router.post('/:userId/toggleFollow', authMiddleware, toggleFollowUser);
 
-// Dejar de seguir a otro usuario
-router.post('/:userId/unfollow', authMiddleware, unfollowUser);
 
 export default router;
