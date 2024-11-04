@@ -1,17 +1,16 @@
-// src/views/Conversations.jsx
+/* eslint-disable react/prop-types */
 import { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Modal from 'react-modal';
 import { FaPlus } from 'react-icons/fa';
-import { io } from 'socket.io-client'; // Importar socket.io
+import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
 
 Modal.setAppElement('#root');
 
-const Conversations = () => {
-  const [conversations, setConversations] = useState([]);
-  const conversationsRef = useRef([]);
+const Conversations = ({ onSelectConversation, selectedConversationId }) => {
   const navigate = useNavigate();
+  const [conversations, setConversations] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -25,7 +24,7 @@ const Conversations = () => {
     const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
 
     if (!token) {
-      navigate('/login');
+      navigate('/login'); // Redirigir a login si no hay token
       return;
     }
 
@@ -41,7 +40,6 @@ const Conversations = () => {
         });
 
         setConversations(updatedConversations);
-        conversationsRef.current = updatedConversations;
       } catch (error) {
         console.error("Error al obtener conversaciones:", error);
       }
@@ -58,14 +56,13 @@ const Conversations = () => {
       // Escuchar eventos de creación de conversaciones en tiempo real
       socketRef.current.on("newConversation", (newConversation) => {
         const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-        const conversationExists = conversationsRef.current.some(
+        const conversationExists = conversations.some(
           (convo) => String(convo._id) === String(newConversation._id)
         );
         if (!conversationExists) {
           const otherUsers = newConversation.users.filter(user => String(user._id) !== String(userId));
           const formattedConversation = { ...newConversation, otherUsers };
           setConversations((prevConversations) => [...prevConversations, formattedConversation]);
-          conversationsRef.current = [...conversationsRef.current, formattedConversation];
         }
       });
 
@@ -79,15 +76,8 @@ const Conversations = () => {
             String(convo._id) === String(updatedConvo._id) ? updatedConvo : convo
           )
         );
-        conversationsRef.current = conversationsRef.current.map((convo) =>
-          String(convo._id) === String(updatedConvo._id) ? updatedConvo : convo
-        );
       });
 
-      // Log for debugging
-      socketRef.current.on("disconnect", () => {
-        console.log('Socket disconnected');
-      });
     }
 
     return () => {
@@ -98,7 +88,7 @@ const Conversations = () => {
         socketRef.current = null;
       }
     };
-  }, [navigate]);
+  }, [conversations, navigate]);
 
   // Función para abrir el modal
   const openModal = () => {
@@ -170,9 +160,9 @@ const Conversations = () => {
   };
 
   return (
-    <div className="p-4 bg-gray-900 h-full relative">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-white">Conversations</h2>
+    <div className="p-4 bg-gray-900 h-full">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold text-white">Conversaciones</h2>
         <button
           onClick={openModal}
           className="flex items-center bg-purple-600 text-white px-3 py-2 rounded-md hover:bg-purple-700"
@@ -182,23 +172,36 @@ const Conversations = () => {
         </button>
       </div>
       {conversations && conversations.length > 0 ? (
-        <ul className="mt-4 space-y-4">
-          {conversations.map((conversation) => (
-            <li key={conversation._id} className="bg-gray-800 p-4 rounded-md hover:bg-gray-700">
-              <Link to={`/conversations/${conversation._id}`} className="flex items-center">
-                <div className="bg-purple-600 h-10 w-10 rounded-full mr-4"></div>
-                <div>
-                  <p className="text-white font-semibold">
-                    {(conversation.otherUsers || []).map(user => user.username).join(', ')}
-                  </p>
-                  <p className="text-gray-400 text-sm">{conversation.lastMessage || ''}</p>
+        <ul className="space-y-4">
+          {conversations.map((conversation) => {
+            const otherUser = conversation.otherUsers[0]; // Asumiendo una conversación uno a uno
+            return (
+              <li
+                key={conversation._id}
+                className={`p-4 rounded-md cursor-pointer hover:bg-gray-700 ${
+                  selectedConversationId === conversation._id ? 'bg-gray-700' : ''
+                }`}
+                onClick={() => onSelectConversation(conversation._id)}
+              >
+                <div className="flex items-center">
+                  {/* Reemplazar el ícono de marcador de posición con la imagen de perfil */}
+                  <img
+                    src={otherUser.profilePicture?.secure_url || '/default-avatar.png'}
+                    alt={`${otherUser.username}'s profile`}
+                    className="h-10 w-10 rounded-full mr-4 object-cover"
+                  />
+                  <div>
+                    <p className="text-white font-semibold">
+                      {otherUser.username}
+                    </p>
+                  </div>
                 </div>
-              </Link>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       ) : (
-        <p className="mt-4 text-gray-400">No tienes conversaciones. Crea una nueva.</p>
+        <p className="text-gray-400">No tienes conversaciones. Crea una nueva.</p>
       )}
 
       {/* Modal para buscar y crear conversaciones */}
@@ -232,7 +235,11 @@ const Conversations = () => {
             searchResults.map(user => (
               <li key={user._id} className="flex items-center justify-between bg-gray-700 p-2 rounded-md mb-2">
                 <div className="flex items-center">
-                  <div className="bg-purple-600 h-8 w-8 rounded-full mr-3"></div>
+                  <img
+                    src={user.profilePicture?.secure_url || '/default-avatar.png'}
+                    alt={`${user.username}'s profile`}
+                    className="h-8 w-8 rounded-full mr-3 object-cover"
+                  />
                   <span className="text-white">{user.username}</span>
                 </div>
                 <button
@@ -244,7 +251,7 @@ const Conversations = () => {
               </li>
             ))
           ) : (
-            <p>No se encontraron usuarios</p>
+            <p>No se encontraron usuarios.</p>
           )}
         </ul>
 

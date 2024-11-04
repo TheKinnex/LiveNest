@@ -1,38 +1,34 @@
-// controllers/subscriptionController.js
-import Subscription from "../models/Suscription.js";
+import Subscription from "../models/Subscription.js";
 import User from "../models/User.js";
 
-// @desc Listar planes de suscripción de un canal
-// @route GET /subscriptions/:channelId
-export const listSubscriptions = async (req, res) => {
+
+// @desc Listar planes de suscripción
+// @route GET /subscriptions/plans
+export const listSubscriptionPlans = async (req, res) => {
   try {
-    const channel = await User.findById(req.params.channelId);
-
-    if (!channel) {
-      return res.status(404).json({ msg: "Canal no encontrado" });
-    }
-
-    /* 
-    
-    plans podrias separarlo en un archivo aparte en util para mejorar la legibilidad
-    del codigo
-    
-    */
-
-    // Listar los dos planes disponibles
+    // Definir los planes de suscripción con sus beneficios
     const plans = [
       {
         plan: "free",
         price: 0,
         durationInDays: null,
         description: "Suscripción gratuita con acceso limitado.",
+        benefits: [
+          "Acceso básico a contenido",
+          "Interacción limitada en la plataforma",
+        ],
       },
       {
         plan: "paid",
         price: 4,
         durationInDays: 30,
-        description:
-          "Suscripción de pago con beneficios premium durante 30 días.",
+        description: "Suscripción de pago con beneficios premium durante 30 días.",
+        benefits: [
+          "Permite subir videos",
+          "Prioridad de soporte",
+          "Mayor recomendación de perfil",
+          "Insignia premium en perfil",
+        ],
       },
     ];
 
@@ -44,48 +40,31 @@ export const listSubscriptions = async (req, res) => {
 };
 
 // @desc Cancelar una suscripción activa
-// @route PATCH /subscriptions/:channelId/cancel
+// @route PATCH /subscriptions/cancel
 export const cancelSubscription = async (req, res) => {
-  const channelId = await User.findById(req.params.channelId);
-
-  if (!channelId) {
-    return res.status(400).json({ msg: "El ID del canal es obligatorio." });
-  }
-
   try {
-    // Encontrar la suscripción activa
+    // Encontrar la suscripción activa del usuario
     const subscription = await Subscription.findOne({
       subscriber: req.user.id,
-      channel: channelId,
       isActive: true,
+      plan: "paid",
     });
 
     if (!subscription) {
-      return res
-        .status(404)
-        .json({ msg: "No tienes una suscripción activa a este canal." });
+      return res.status(404).json({ msg: "No tienes una suscripción activa para cancelar." });
     }
 
     // Marcar la suscripción como inactiva
     subscription.isActive = false;
     await subscription.save();
 
-    // Actualizar el usuario suscriptor eliminando la referencia a esta suscripción
+    // Actualizar el usuario suscriptor
     const subscriberUser = await User.findById(req.user.id);
-    subscriberUser.subscriptions = subscriberUser.subscriptions.filter(
-      (subId) => subId.toString() !== subscription._id.toString()
-    );
-    await subscriberUser.save();
 
-    // Actualizar el canal eliminando la referencia de este suscriptor
-    const channelUser = await User.findById(channelId);
-    if (!channelUser) {
-      return res.status(404).json({ msg: "Canal no encontrado." });
-    }
-    channelUser.subscribers = channelUser.subscribers.filter(
-      (subId) => subId.toString() !== subscription._id.toString()
-    );
-    await channelUser.save();
+    // Si la suscripción cancelada es premium, establecer isPremium en false
+    subscriberUser.isPremium = false;
+
+    await subscriberUser.save();
 
     res.json({ msg: "Suscripción cancelada exitosamente", subscription });
   } catch (err) {
@@ -94,15 +73,16 @@ export const cancelSubscription = async (req, res) => {
   }
 };
 
-// @desc Obtener suscripciones activas
+
+// @desc Obtener suscripciones activas del usuario logueado
 // @route GET /subscriptions
 export const getUserSubscriptions = async (req, res) => {
   try {
-    // Buscar todas las suscripciones del usuario logueado
+    // Buscar todas las suscripciones activas del usuario logueado
     const subscriptions = await Subscription.find({
       subscriber: req.user.id,
       isActive: true,
-    }).populate("channel", "username profilePicture");
+    });
 
     if (!subscriptions || subscriptions.length === 0) {
       return res.status(404).json({ msg: "No tienes suscripciones activas." });

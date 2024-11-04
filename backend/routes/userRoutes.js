@@ -9,16 +9,20 @@ import {
   getFollowers,      
   getFollowing,   
   searchUsers,
-  getCurrentUserProfile
-     
+  getCurrentUserProfile, 
+  getSuggestedUsers
 } from '../controllers/userController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { authorizationMiddleware } from '../middlewares/authorizationMiddleware.js';
 
 const router = express.Router();
 
+
 // Ruta para obtener la cuenta actual
 router.get("/current", authMiddleware, getCurrentUserProfile);
+
+// Ruta para obtener sugerencias de usuarios a seguir
+router.get('/suggestions', authMiddleware, getSuggestedUsers);
 
 // Ruta para buscar usuarios por nombre de usuario
 router.get('/users', authMiddleware, searchUsers);
@@ -31,6 +35,8 @@ router.get('/:userId/followers', authMiddleware, getFollowers);
 
 // Obtener lista de usuarios que sigue un usuario
 router.get('/:userId/following', authMiddleware, getFollowing);
+
+
 
 // Actualizar perfil de un usuario (solo el propietario)
 router.patch(
@@ -56,6 +62,7 @@ router.delete('/:userId', authMiddleware, authorizationMiddleware, deleteUserPro
 
 // Seguir a otro usuario
 router.post('/:userId/toggleFollow', authMiddleware, toggleFollowUser);
+
 
 
 export default router;

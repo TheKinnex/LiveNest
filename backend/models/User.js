@@ -35,12 +35,10 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-  // Suscripciones realizadas por el usuario a otros canales
+  // Suscripciones realizadas por el usuario
   subscriptions: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Subscription" },
   ],
-  // Usuarios que se han suscrito al canal de este usuario
-  subscribers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }],
   streamKey: {
     type: String,
     unique: true,
@@ -71,7 +69,11 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
-    default: false, // El usuario no está verificado al momento del registro
+    default: false, 
+  },
+  isPremium: {
+    type: Boolean,
+    default: false
   },
   verificationCode: {
     type: String,

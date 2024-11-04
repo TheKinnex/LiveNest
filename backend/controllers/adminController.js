@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Post from "../models/Post.js";
 import Report from '../models/Report.js'
+import Subscriptions from '../models/Subscription.js'
 
 // @desc Listar todos los usuarios
 // @route GET /admin/users
@@ -14,37 +15,47 @@ export const listUsers = async (req, res) => {
   }
 };
 
-// @desc Editar un usuario
-// @route PATCH /admin/users/:userId
-export const editUser = async (req, res) => {
+// @desc Obtener suscripciones de un usuario
+// @route GET /admin/users/:userId/subscriptions
+export const getUserSubscriptions = async (req, res) => {
   try {
-    const { username, email, role } = req.body;
-
-    let user = await User.findById(req.params.userId);
-
+    const user = await User.findById(req.params.userId).populate('subscriptions');
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
-
-    user.username = username || user.username;
-    user.email = email || user.email;
-    user.role = role || user.role;
-    user.updatedAt = Date.now();
-
-    await user.save();
-
-    res.json({ msg: "Usuario actualizado correctamente", user });
+    res.json(user.subscriptions);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
 
-/* 
+// @desc Obtener posts de un usuario
+// @route GET /admin/users/:userId/posts
+export const getUserPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.params.userId, isDelete: false }).populate('author', 'username');
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
 
-Para Edit user aunque esta bien, podrias utilizar una solucion que no necesite el reenvio de los datos 
-que no quieras editar como:
+// @desc Listar todas las suscripciones
+// @route GET /admin/subscriptions
+export const listSubscriptions = async (req, res) => {
+  try {
+    const subscriptions = await Subscriptions.find();
+    res.json(subscriptions);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};
 
+// @desc Editar un usuario
+// @route PATCH /admin/users/:userId
 export const editUser = async (req, res) => {
   try {
     const { username, email, role } = req.body;
@@ -72,8 +83,6 @@ export const editUser = async (req, res) => {
   }
 };
 
-
-*/
 
 // @desc Bloquear o eliminar un usuario
 // @route DELETE /admin/users/:userId
@@ -206,3 +215,4 @@ export const deletePost = async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 };
+

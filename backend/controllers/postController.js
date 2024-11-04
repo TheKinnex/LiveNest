@@ -2,8 +2,9 @@ import Post from "../models/Post.js";
 import Report from "../models/Report.js";
 import User from "../models/User.js";
 import Comment from "../models/Comment.js";
-import { uploadImage } from "../utils/cloudinary.js";
+import { uploadImage, uploadVideo } from "../utils/cloudinary.js";
 import fs from "fs-extra";
+import Subscription from "../models/Subscription.js";
 
 // @desc Crear un nuevo post
 // @route POST /posts
@@ -12,29 +13,61 @@ export const createPost = async (req, res) => {
     const { content, tags } = req.body;
     const author = req.user.id;
 
-    // Verificar si hay archivos multimedia
+    // Verificar si el usuario tiene una suscripción "paid" activa
+    const paidSubscription = await Subscription.findOne({
+      subscriber: author,
+      plan: "paid",
+      isActive: true,
+      endDate: { $gte: new Date() }, // Asegurar que la suscripción no haya expirado
+    });
+
+    // Verificar si el usuario es premium
+    const isPremium = !!paidSubscription;
+
+    // Manejar archivos multimedia
     let mediaArray = [];
 
     if (req.files && req.files.media) {
-      // Si solo es un archivo, convertirlo en un array para iterar sobre él
+      // Convertir a array si solo es un archivo
       const mediaFiles = Array.isArray(req.files.media)
         ? req.files.media
         : [req.files.media];
 
-      // Limitar la cantidad de imágenes/videos a 20
+      // Limitar la cantidad de archivos
       if (mediaFiles.length > 20) {
         return res
           .status(400)
           .json({ msg: "Solo se permite subir un máximo de 20 archivos." });
       }
 
-      // Subir cada archivo a Cloudinary
       for (const file of mediaFiles) {
-        const result = await uploadImage(file.tempFilePath, "postsMedia");
-        mediaArray.push({
-          public_id: result.public_id,
-          secure_url: result.secure_url,
-        });
+        // Determinar el tipo de archivo
+        const fileType = file.mimetype.startsWith('video/') ? 'video' : 'image';
+
+        if (fileType === 'video' && !isPremium) {
+          return res.status(403).json({ msg: "Necesitas una suscripción premium para subir videos." });
+        }
+
+        if (fileType === 'image') {
+          const result = await uploadImage(file.tempFilePath, "postsMedia");
+          mediaArray.push({
+            public_id: result.public_id,
+            secure_url: result.secure_url,
+            type: 'image',
+          });
+        } else if (fileType === 'video') {
+          const result = await uploadVideo(file.tempFilePath, "postsMedia");
+          
+          // Log de la respuesta de Cloudinary
+          //console.log("Resultado de subida de video:", result);
+
+          mediaArray.push({
+            public_id: result.public_id,
+            secure_url: result.secure_url,
+            type: 'video',
+            thumbnail: result.eager && result.eager.length > 0 ? result.eager[0].secure_url : '',
+          });
+        }
 
         // Eliminar el archivo temporal
         await fs.unlink(file.tempFilePath);
@@ -71,60 +104,117 @@ export const getFeed = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Obtener el usuario autenticado y sus seguidores
+    // Obtener el usuario autenticado y sus seguidos
     const user = await User.findById(userId).populate("following", "username");
 
     if (!user) {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
-    // Obtener las publicaciones de los usuarios seguidos
     const followedUserIds = user.following.map((follow) => follow._id);
-    let posts = await Post.find({
+
+    // Definir cuántos posts queremos en el feed
+    const POSTS_LIMIT = 20;
+    const PAGE = parseInt(req.query.page) || 1; // Paginación
+    const SKIP = (PAGE - 1) * POSTS_LIMIT;
+
+    // 1. Obtener publicaciones de usuarios seguidos
+    const followedPostsPromise = Post.find({
       author: { $in: followedUserIds },
       isDelete: false,
     })
       .sort({ createdAt: -1 })
-      .limit(10) // Limitar el número de publicaciones seguidas a 10 inicialmente
+      .skip(SKIP)
+      .limit(POSTS_LIMIT)
       .populate("author", "username profilePicture")
       .populate({
         path: "comments",
-        match: { isDelete: false }, // Solo mostrar comentarios que no estén eliminados
-        populate: { path: "author", select: "username profilePicture" }, // Popular el autor de cada comentario
-      });
+        match: { isDelete: false },
+        populate: { path: "author", select: "username profilePicture" },
+      })
+      .lean(); // Usar lean para mejorar el rendimiento
 
-    // Si no hay suficientes publicaciones de seguidos, buscar recomendaciones
-    if (posts.length < 20) {
-      // Encontrar los tags más comunes en las publicaciones del usuario
-      const userPosts = await Post.find({ author: userId, isDelete: false });
-      const userTags = userPosts.flatMap((post) => post.tags);
+    // 2. Obtener recomendaciones basadas en tags
+    const userPosts = await Post.find({ author: userId, isDelete: false }).select("tags").lean();
+    const userTags = userPosts.flatMap(post => post.tags);
 
-      // Obtener publicaciones de recomendación basadas en tags
-      const recommendations = await Post.find({
-        tags: { $in: userTags }, // Tags similares a los del usuario
+    let recommendedPosts = [];
+
+    if (userTags.length > 0) {
+      recommendedPosts = await Post.find({
+        tags: { $in: userTags },
         author: { $nin: [...followedUserIds, userId] }, // Excluir posts del propio usuario y de seguidos
         isDelete: false,
       })
         .sort({ createdAt: -1 })
-        .limit(20 - posts.length) // Completar hasta llegar a 20 posts en total
+        .limit(POSTS_LIMIT)
         .populate("author", "username profilePicture")
         .populate({
           path: "comments",
-          match: { isDelete: false }, // Solo mostrar comentarios que no estén eliminados
-          populate: { path: "author", select: "username profilePicture" }, // Popular el autor de cada comentario
-        });
-
-      // Mezclar publicaciones seguidas y recomendaciones
-      posts = [...posts, ...recommendations];
+          match: { isDelete: false },
+          populate: { path: "author", select: "username profilePicture" },
+        })
+        .lean();
     }
 
-    // Enviar las publicaciones mezcladas en el feed
-    res.json({ msg: "Feed de publicaciones", posts });
+    // 3. Si el usuario no sigue a nadie, recomendar publicaciones populares
+    if (followedUserIds.length === 0) {
+      recommendedPosts = await Post.find({
+        isDelete: false,
+      })
+        .sort({ createdAt: -1 }) // Puedes cambiar esto por otro criterio de popularidad
+        .limit(POSTS_LIMIT)
+        .populate("author", "username profilePicture")
+        .populate({
+          path: "comments",
+          match: { isDelete: false },
+          populate: { path: "author", select: "username profilePicture" },
+        })
+        .lean();
+    }
+
+    // 4. Combinar publicaciones seguidas y recomendaciones
+    const followedPosts = await followedPostsPromise;
+
+    let feedPosts = [...followedPosts];
+
+    if (recommendedPosts.length > 0) {
+      feedPosts = [...feedPosts, ...recommendedPosts];
+    }
+
+    // 5. Ordenar las publicaciones combinadas por relevancia (puedes ajustar esto)
+    feedPosts = feedPosts.sort((a, b) => b.createdAt - a.createdAt);
+
+    // 6. Limitar el feed al POSTS_LIMIT
+    feedPosts = feedPosts.slice(0, POSTS_LIMIT);
+
+    // 7. Contar el total de publicaciones para paginación
+    const totalPosts = await Post.countDocuments({
+      $or: [
+        { author: { $in: followedUserIds } },
+        { tags: { $in: userTags }, author: { $nin: [...followedUserIds, userId] } },
+      ],
+      isDelete: false,
+    });
+
+    // Calcular el número total de páginas
+    const totalPages = Math.ceil(totalPosts / POSTS_LIMIT);
+
+    // 8. Enviar las publicaciones y datos de paginación
+    res.json({ 
+      msg: "Feed de publicaciones", 
+      posts: feedPosts,
+      currentPage: PAGE,
+      totalPages,
+      totalPosts,
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
+
+
 
 // @desc Obtener un Post
 // @route POST /posts/:postId

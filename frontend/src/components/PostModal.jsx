@@ -35,7 +35,6 @@ const PostModal = ({ postId, onClose }) => {
                         },
                     }
                 );
-                console.log(response.data)
                 setPost(response.data);
                 setIsOwner(response.data.author._id === userId);
                 setHasLiked(response.data.likes.includes(userId));
@@ -207,6 +206,13 @@ const PostModal = ({ postId, onClose }) => {
     };
 
 
+    const isCommentEdited = (comment) => {
+        if (!comment.updatedAt || !comment.createdAt) return false;
+        const created = new Date(comment.createdAt).getTime();
+        const updated = new Date(comment.updatedAt).getTime();
+        return (updated - created) > 1000; // Más de 1 segundo de diferencia
+    };
+
     if (!post) return null;
 
     return (
@@ -220,6 +226,23 @@ const PostModal = ({ postId, onClose }) => {
             >
                 {/* Image container and navigation */}
                 <div className="relative flex-2 bg-black flex items-center justify-center max-w-[70%]">
+                    {post.media.length > 0 && (
+                        <>
+                            {post.media[currentImageIndex].type === "video" ? (
+                                <video
+                                    src={post.media[currentImageIndex].secure_url}
+                                    controls
+                                    className="object-contain h-[44.81rem]"
+                                />
+                            ) : (
+                                <img
+                                    src={post.media[currentImageIndex].secure_url}
+                                    alt={`Post Media ${currentImageIndex + 1}`}
+                                    className="object-contain h-[44.81rem]"
+                                />
+                            )}
+                        </>
+                    )}
                     {post.media.length > 1 && currentImageIndex > 0 && (
                         <button
                             onClick={() => setCurrentImageIndex(currentImageIndex - 1)}
@@ -228,11 +251,7 @@ const PostModal = ({ postId, onClose }) => {
                             <IoIosArrowBack size={24} />
                         </button>
                     )}
-                    <img
-                        src={post.media[currentImageIndex].secure_url}
-                        alt={`Post Media ${currentImageIndex + 1}`}
-                        className="object-contain max-h-screen"
-                    />
+
                     {post.media.length > 1 && currentImageIndex < post.media.length - 1 && (
                         <button
                             onClick={() => setCurrentImageIndex(currentImageIndex + 1)}
@@ -247,13 +266,15 @@ const PostModal = ({ postId, onClose }) => {
                 <div className="w-80 bg-gray-900 flex flex-col text-white relative">
                     {/* Header with options menu */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-700">
-                        <div className="flex items-center">
-                            <img
-                                src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
-                                alt="Profile"
-                                className="w-10 h-10 rounded-full mr-3"
-                            />
-                            <span className="font-semibold">{post.author.username}</span>
+                        <div >
+                            <Link className="flex items-center" to={`/profile/${post.author.username}`}>
+                                <img
+                                    src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
+                                    alt="Profile"
+                                    className="w-10 h-10 rounded-full mr-3"
+                                />
+                                <span className="font-semibold">{post.author.username}</span>
+                            </Link>
                         </div>
                         <div className="relative">
                             <button onClick={handleToggleMenu} className="text-white text-xl">
@@ -315,7 +336,7 @@ const PostModal = ({ postId, onClose }) => {
                                     ) : (
                                         <p className="text-sm">
                                             {comment.content}
-                                            {comment.updatedAt && new Date(comment.updatedAt) > new Date(comment.createdAt) && (
+                                            {isCommentEdited(comment) && (
                                                 <span className="text-xs text-gray-400 ml-2">(Editado)</span>
                                             )}
                                         </p>

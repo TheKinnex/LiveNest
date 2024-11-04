@@ -5,6 +5,7 @@ import PostModal from '../components/PostModal.jsx';
 import { LuLayoutGrid } from "react-icons/lu";
 import { CiStreamOn } from "react-icons/ci";
 import { IoIosPhotos } from "react-icons/io";
+import { FaStar } from "react-icons/fa"; // Icono para la pelota amarilla
 
 const Profile = () => {
   const { profileUsername } = useParams();
@@ -13,7 +14,7 @@ const Profile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const navigate = useNavigate();
-  const isMobile = window.innerWidth <= 768; // Detecta si es móvil
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768); // Estado dinámico para detectar móvil
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
 
@@ -32,9 +33,10 @@ const Profile = () => {
         );
 
         if (response.data) {
+          console.log(response.data)
           setUserData(response.data);
           setIsOwner(response.data._id === userId);
-          setIsFollowing(response.data.followers.includes(userId));
+          setIsFollowing(response.data.followers.some(follower => follower._id === userId));
         } else {
           console.error("Usuario no encontrado");
         }
@@ -45,6 +47,18 @@ const Profile = () => {
 
     fetchUserProfile();
   }, [navigate, profileUsername, token, userId]);
+
+  useEffect(() => {
+    // Manejar cambios en el tamaño de la ventana para actualizar isMobile
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Limpieza del event listener al desmontar el componente
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleToggleFollow = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -113,19 +127,32 @@ const Profile = () => {
     navigate("/account/edit/");
   };
 
+  const handleManageSubscriptions = () => {
+    navigate("/my-subscriptions");
+  };
+
+  const handleViewSubscriptions = () => {
+    navigate("/subscriptions");
+  };
+
   if (!userData) return <div className="text-white">Cargando perfil...</div>;
 
   return (
     <div className="bg-gray-900 min-h-screen flex flex-col items-center p-4 md:p-8 text-white">
-      {/* Header con foto de perfil y nombre de usuario */}
+      {/* Header con foto de perfil, nombre de usuario y pelota amarilla si es premium */}
       <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-5 w-full max-w-3xl">
         <img
           src={userData.profilePicture?.secure_url || '/default-avatar.png'}
           alt="Profile"
           className="w-20 h-20 md:w-24 md:h-24 bg-gray-600 rounded-full border-4 border-purple-500"
         />
-        <div className="text-center md:text-left mt-4 md:mt-0">
-          <h1 className="text-xl md:text-2xl">{userData.username}</h1>
+        <div className="text-center md:text-left mt-4 md:mt-0 relative">
+          <h1 className="text-xl md:text-2xl flex items-center justify-center md:justify-start">
+            {userData.username}
+            {userData.isPremium && (
+              <FaStar className="text-yellow-500 ml-2" title="Usuario Premium" />
+            )}
+          </h1>
           <div className="flex justify-center md:justify-start space-x-4 mt-2 text-sm md:text-lg">
             <span>{userData.posts?.length || 0} publicaciones</span>
             <span>{userData.followers?.length || 0} seguidores</span>
@@ -136,11 +163,11 @@ const Profile = () => {
       </div>
 
       {/* Botones de acción */}
-      <div className="flex space-x-4 mt-5">
+      <div className="flex space-x-4 mt-5 flex-wrap justify-center md:justify-start">
         {isOwner ? (
           <button
             onClick={handleEditProfile}
-            className="bg-gray-700 px-4 py-2 rounded text-sm md:text-base hover:bg-gray-600"
+            className="bg-gray-700 px-4 py-2 rounded text-sm md:text-base hover:bg-gray-600 mb-2 md:mb-0"
           >
             Editar Perfil
           </button>
@@ -149,15 +176,35 @@ const Profile = () => {
             <button
               onClick={handleToggleFollow}
               className={`px-4 py-2 rounded text-sm md:text-base transition-colors ${isFollowing ? "bg-gray-700 hover:bg-gray-600" : "bg-purple-600 hover:bg-purple-500"
-                }`}
+                } mb-2 md:mb-0`}
             >
               {isFollowing ? "Dejar de Seguir" : "Seguir"}
             </button>
             <button
               onClick={handleCreateConversation}
-              className="bg-gray-700 px-4 py-2 rounded text-sm md:text-base hover:bg-gray-600"
+              className="bg-gray-700 px-4 py-2 rounded text-sm md:text-base hover:bg-gray-600 mb-2 md:mb-0"
             >
               Mensaje
+            </button>
+          </>
+        )}
+
+        {/* Botones adicionales para dispositivos móviles */}
+        {isMobile && isOwner && (
+          <>
+            {userData.isPremium && (
+              <button
+                onClick={handleManageSubscriptions}
+                className="bg-yellow-500 px-4 py-2 rounded text-sm md:text-base hover:bg-yellow-600 mb-2 md:mb-0"
+              >
+                Gestionar Suscripciones
+              </button>
+            )}
+            <button
+              onClick={handleViewSubscriptions}
+              className="bg-blue-600 px-4 py-2 rounded text-sm md:text-base hover:bg-blue-700 mb-2 md:mb-0"
+            >
+              Ver Suscripciones
             </button>
           </>
         )}
@@ -182,12 +229,14 @@ const Profile = () => {
             {post.media?.length > 1 && (
               <IoIosPhotos className="absolute top-2 right-2 text-white opacity-80" size={20} />
             )}
-            {post.media?.[0]?.secure_url ? (
+            {post.media?.[0]?.secure_url && (!post.media?.[0]?.type || post.media?.[0]?.type !== "video") ? (
               <img src={post.media[0].secure_url} alt="Post Media" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                <span className="text-gray-500">Sin imagen</span>
-              </div>
+              <img
+                src={post.media?.[0]?.thumbnail || '/default-thumbnail.png'}
+                alt="Video Thumbnail"
+                className="w-full h-full object-cover "
+              />
             )}
             <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center opacity-0 group-hover:opacity-100 transition-opacity">
               <span className="text-white text-sm">{post.likes?.length || 0} Likes</span>

@@ -41,9 +41,6 @@ export const getCurrentUserProfile = async (req, res) => {
   }
 };
 
-
-
-
 // @desc Buscar usuarios por nombre de usuario
 // @route GET /profile/users?username=xxx
 export const searchUsers = async (req, res) => {
@@ -259,5 +256,34 @@ export const getFollowing = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
+  }
+};
+
+// @desc Obtener sugerencias de usuarios para seguir
+// @route GET /profile/suggestions
+export const getSuggestedUsers = async (req, res) => {
+  try {
+    const currentUserId = req.user.id;
+
+    // Obtener la lista de usuarios que el usuario actual ya sigue
+    const currentUser = await User.findOne({ _id: currentUserId, isDelete: false, isVerified: true }).select('following');
+    if (!currentUser) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    const followingIds = currentUser.following.map(id => id.toString());
+
+    // Buscar usuarios que no sean el usuario actual y que no esté siguiendo
+    const suggestions = await User.find({
+      _id: { $ne: currentUserId, $nin: followingIds },
+      isDelete: false
+    })
+      .select('username profilePicture')
+      .limit(5);
+
+
+    res.json(suggestions);
+  } catch (err) {
+    res.status(500).json({ msg: "Error en el servidor" });
   }
 };

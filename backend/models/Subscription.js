@@ -1,3 +1,4 @@
+// models/Subscription.js
 import mongoose from "mongoose";
 
 const subscriptionSchema = new mongoose.Schema({
@@ -5,11 +6,6 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true, // Usuario que se suscribe
-  },
-  channel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true, // Canal o streamer al que se suscribe
   },
   plan: {
     type: String,
@@ -35,6 +31,14 @@ const subscriptionSchema = new mongoose.Schema({
     type: Boolean,
     default: true, // Estado de la suscripción (activa o inactiva)
   },
+});
+
+// Middleware para calcular la fecha de finalización antes de guardar
+subscriptionSchema.pre('save', function(next) {
+  if (this.plan === 'paid' && !this.endDate) {
+    this.endDate = new Date(this.startDate.getTime() + this.durationInDays * 24 * 60 * 60 * 1000);
+  }
+  next();
 });
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);

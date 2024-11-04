@@ -1,16 +1,17 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
+import io from 'socket.io-client';  
 import axios from 'axios';
-import { FaSmile, FaPaperPlane } from "react-icons/fa";
+import { FaPaperPlane, FaTimes } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
-const ConversationDetail = () => {
-  const { id } = useParams();
+const ConversationDetail = ({ conversationId, isDesktop, onExit }) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [username, setUsername] = useState("");
-  const [isSending, setIsSending] = useState(false); // Estado para controlar el envío
+  const [profilePicture, setProfilePicture] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Obtener el token y el userId desde localStorage o sessionStorage
@@ -18,23 +19,22 @@ const ConversationDetail = () => {
   const userId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
   useEffect(() => {
-
     if (!token) {
       navigate('/login'); // Redirigir a login si no hay token
       return;
     }
-    
+
     const socket = io(`${import.meta.env.VITE_API_URL}`, {
       auth: { token },
     });
 
     // Unirse a la conversación en socket.io
-    socket.emit("joinConversation", id);
+    socket.emit("joinConversation", conversationId);
 
     // Obtener los mensajes de la conversación desde el backend
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/messages/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/messages/${conversationId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessages(res.data);
@@ -44,14 +44,15 @@ const ConversationDetail = () => {
     };
     fetchMessages();
 
-    // Obtener información de la conversación para mostrar el nombre del usuario
+    // Obtener información de la conversación para mostrar el nombre y foto del usuario
     const fetchConversationInfo = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/conversations/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/conversations/${conversationId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const otherUser = res.data.users.find(user => user._id !== userId);
         setUsername(otherUser ? otherUser.username : "Usuario");
+        setProfilePicture(otherUser.profilePicture?.secure_url || '/default-avatar.png');
 
         // Verificar el estado en línea del otro usuario al cargar la conversación
         socket.emit('checkOnlineStatus', otherUser._id);
@@ -76,10 +77,10 @@ const ConversationDetail = () => {
     // Cleanup para evitar fugas de memoria
     return () => {
       socket.off("receiveMessage");
-      socket.emit("leaveConversation", id);
+      socket.emit("leaveConversation", conversationId);
       socket.disconnect();
     };
-  }, [id, navigate, token, userId]);
+  }, [conversationId, navigate, token, userId]);
 
   useEffect(() => {
     // Scroll automático hacia el último mensaje cuando se actualizan los mensajes
@@ -91,7 +92,7 @@ const ConversationDetail = () => {
     setIsSending(true); // Bloquear el envío
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/messages/${id}/send`,
+        `${import.meta.env.VITE_API_URL}/messages/${conversationId}/send`,
         { content: newMessage },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -106,24 +107,36 @@ const ConversationDetail = () => {
   };
 
   const handleLeaveConversation = () => {
-    navigate("/conversations");
+    if (!isDesktop) {
+      onExit(); // Solo en mobile, regresa a la lista de conversaciones
+    }
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       {/* Encabezado del chat */}
       <header className="bg-gray-800 p-4 flex items-center justify-between text-white">
         <div className="flex items-center space-x-3">
-          <div className="bg-purple-600 h-10 w-10 rounded-full"></div>
+          {/* Mostrar la imagen de perfil del otro usuario */}
+          <img
+            src={profilePicture}
+            alt={`${username}'s profile`}
+            className="h-10 w-10 rounded-full object-cover"
+          />
           <div>
             <p className="font-semibold">{username}</p>
           </div>
         </div>
-        <button onClick={handleLeaveConversation} className="text-red-500">Salir</button>
+        {/* Mostrar el botón de salir solo en mobile */}
+        {!isDesktop && (
+          <button onClick={handleLeaveConversation} className="text-red-500">
+            <FaTimes />
+          </button>
+        )}
       </header>
 
       {/* Mensajes */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-900 md:pb-0 pb-28 no-scrollbar"> {/* Añadido padding-bottom */}
+      <div className="flex-1 p-4 mb-14 lg:mb-0 space-y-4 overflow-y-auto bg-gray-900">
         {messages.map((message, index) => {
           const isCurrentUser = String(message.sender._id) === String(userId);
           return (
@@ -131,11 +144,14 @@ const ConversationDetail = () => {
               key={index}
               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
-              <div dir={`${isCurrentUser ? 'Right-to-left ' : 'left-to-Right '}`}
-                className={`p-1 max-w-xs ${isCurrentUser ? 'bg-purple-600 rounded-l-lg rounded-br-lg text-white border-white border' : 'bg-gray-700 text-white rounded-r-lg rounded-bl-lg border-white border'
-                  }`}
+              <div
+                className={`p-2 max-w-xs ${
+                  isCurrentUser
+                    ? 'bg-purple-600 rounded-l-lg rounded-br-lg text-white border border-white'
+                    : 'bg-gray-700 text-white rounded-r-lg rounded-bl-lg border border-white'
+                }`}
               >
-                <p className="px-1 py-1 font-semibold text-base">{message.content}</p>
+                <p className="font-semibold text-base break-words">{message.content}</p>
               </div>
             </div>
           );
@@ -144,8 +160,7 @@ const ConversationDetail = () => {
       </div>
 
       {/* Input para enviar mensaje */}
-      <div className="md:bg-gray-900 p-4 absolute md:static flex items-center space-x-2 bottom-0 left-0 w-full md:pb-4 pb-2">
-        <FaSmile className="text-purple-500 cursor-pointer" />
+      <div className="lg:bg-gray-900 bg-transparent p-4 lg:flex lg:items-center space-x-2 flex relative bottom-16 lg:bottom-0">
         <input
           type="text"
           placeholder="Enviar mensaje..."

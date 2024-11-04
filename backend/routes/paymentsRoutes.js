@@ -2,6 +2,7 @@ import express from "express";
 import {
   createSubscriptionTransaction,
   captureSubscriptionTransaction,
+  cancelSubscriptionTransaction,
   getPaymentHistory
 } from "../controllers/transactionController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js"; // Middleware para autenticar usuarios
@@ -14,7 +15,11 @@ router.post("/create", authMiddleware, createSubscriptionTransaction);
 
 // @desc Capturar el pago de una suscripción
 // @route GET /payments/success
-router.get("/success", authMiddleware, captureSubscriptionTransaction);
+router.get("/success", captureSubscriptionTransaction);
+
+// @desc Manejar la cancelación del pago
+// @route GET /payments/cancel
+router.get('/cancel', authMiddleware, cancelSubscriptionTransaction);
 
 // @desc Obtener historial de pagos del usuario logueado
 // @route GET /payments/history

@@ -1,14 +1,11 @@
-// controllers/commentController.js
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
 
 // @desc Eliminar un comentario
-// @route DELETE comments/:commentId
+// @route DELETE /comments/:commentId
 export const deleteComment = async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.commentId).populate(
-      "post"
-    );
+    const comment = await Comment.findById(req.params.commentId).populate("post");
 
     if (!comment) {
       return res.status(404).json({ msg: "Comentario no encontrado" });
@@ -21,12 +18,6 @@ export const deleteComment = async (req, res) => {
     }
 
     // Verificar si el usuario es el autor del comentario, el dueño del post, o un administrador
-
-    /* 
-    
-    El usuario deberia poder eliminar su propio comentario (Usando Soft Delete),el administrador tambien deberia poder
-    
-    */
     if (
       comment.author.toString() !== req.user.id && // Autor del comentario
       post.author.toString() !== req.user.id && // Dueño del post
@@ -49,7 +40,7 @@ export const deleteComment = async (req, res) => {
 };
 
 // @desc Editar un comentario
-// @route PATCH comments/:commentId
+// @route PATCH /comments/:commentId
 export const editComment = async (req, res) => {
   try {
     const { content } = req.body;
@@ -75,7 +66,7 @@ export const editComment = async (req, res) => {
 
     // Actualizar el contenido del comentario
     comment.content = content;
-    comment.updatedAt = Date.now();
+    comment.updatedAt = Date.now(); // Esto ya lo maneja Mongoose automáticamente
     await comment.save();
 
     res.json({ msg: "Comentario actualizado correctamente", comment });
@@ -84,6 +75,7 @@ export const editComment = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 /* 
 

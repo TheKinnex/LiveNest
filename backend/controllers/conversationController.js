@@ -1,4 +1,3 @@
-// controllers/conversationController.js
 import Conversation from "../models/Conversation.js";
 import User from "../models/User.js";
 

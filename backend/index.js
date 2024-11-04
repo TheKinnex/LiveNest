@@ -58,7 +58,7 @@ app.use("/admin", adminRoutes);
 app.use("/conversations", conversationRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payments", paymentsRoutes);
-app.use("/suscription", suscriptionRoutes);
+app.use("/subscriptions", suscriptionRoutes);
 
 
 app.use((req, res, next) => {
@@ -83,39 +83,81 @@ io.use((socket, next) => {
   }
 });
 
+// Definir constantes para eventos
+const EVENTS = {
+  JOIN_CONVERSATION: "joinConversation",
+  LEAVE_CONVERSATION: "leaveConversation",
+  SEND_MESSAGE: "sendMessage",
+  RECEIVE_MESSAGE: "receiveMessage",
+  NEW_CONVERSATION: "newConversation",
+  UPDATE_CONVERSATION: "updateConversation",
+  CHECK_ONLINE_STATUS: "checkOnlineStatus",
+  ONLINE_STATUS: "onlineStatus",
+  ERROR: "error",
+};
+
 // Manejo de eventos con Socket.io
 io.on("connection", (socket) => {
-  console.log(`Usuario ${socket.userId} se ha conectado con el socket: ${socket.id}`);
 
-  // Unirse a una sala con el nombre del userId
+  // Unirse a la sala propia
   socket.join(socket.userId);
-  console.log(`Usuario ${socket.userId} se ha unido a su propia sala: ${socket.userId}`);
 
-  // Unirse a salas de conversación cuando se escuche el evento 'joinConversation'
-  socket.on("joinConversation", (conversationId) => {
-    socket.join(conversationId);
-    console.log(`Usuario ${socket.userId} se unió a la sala: ${conversationId}`);
-  });
-
-  // Abandonar una sala de conversación cuando el usuario lo solicita
-  socket.on("leaveConversation", (conversationId) => {
-    socket.leave(conversationId);
-    console.log(`Usuario ${socket.userId} ha dejado la sala: ${conversationId}`);
-  });
-
-  // Escuchar cuando un usuario envía un mensaje
-  socket.on("sendMessage", async ({ conversationId, content }) => {
+  // Manejar unirse a una conversación
+  socket.on(EVENTS.JOIN_CONVERSATION, async (conversationId) => {
     try {
-      const conversation = await Conversation.findById(conversationId);
+      // Verificar que la conversación existe y que el usuario es parte de ella
+      const conversation = await Conversation.findById(conversationId).populate('users', '_id');
       if (!conversation) {
+        socket.emit(EVENTS.ERROR, "Conversación no encontrada.");
         return;
       }
+
+      const isParticipant = conversation.users.some(user => String(user._id) === String(socket.userId));
+      if (!isParticipant) {
+        socket.emit(EVENTS.ERROR, "No estás autorizado para unirte a esta conversación.");
+        return;
+      }
+
+      socket.join(conversationId);
+    } catch (err) {
+      socket.emit(EVENTS.ERROR, "Error al unirse a la conversación.");
+    }
+  });
+
+  // Manejar abandonar una conversación
+  socket.on(EVENTS.LEAVE_CONVERSATION, (conversationId) => {
+    socket.leave(conversationId);
+  });
+
+  // Manejar enviar un mensaje
+  socket.on(EVENTS.SEND_MESSAGE, async ({ conversationId, content }) => {
+    if (!conversationId || !content || typeof content !== 'string' || content.trim().length === 0) {
+      socket.emit(EVENTS.ERROR, "Mensaje inválido.");
+      return;
+    }
+
+    try {
+      // Verificar que la conversación existe y que el usuario es parte de ella
+      const conversation = await Conversation.findById(conversationId);
+      if (!conversation) {
+        socket.emit(EVENTS.ERROR, "Conversación no encontrada.");
+        return;
+      }
+
+      const isParticipant = conversation.users.some(user => String(user._id) === String(socket.userId));
+      if (!isParticipant) {
+        socket.emit(EVENTS.ERROR, "No estás autorizado para enviar mensajes en esta conversación.");
+        return;
+      }
+
+      // Sanitizar y limitar el contenido del mensaje
+      const sanitizedContent = content.trim().substring(0, 1000); // Limita a 1000 caracteres
 
       // Crear el nuevo mensaje
       const newMessage = new Message({
         conversation: conversationId,
-        sender: socket.userId, // Usar el ID del usuario del socket
-        content,
+        sender: socket.userId,
+        content: sanitizedContent,
       });
 
       // Guardar el mensaje en la base de datos
@@ -127,24 +169,67 @@ io.on("connection", (socket) => {
 
       // Obtener el username del remitente
       const sender = await User.findById(socket.userId).select("username");
+      if (!sender) {
+        console.warn(`Usuario con ID ${socket.userId} no encontrado.`);
+      }
 
-      // Emitir el mensaje a todos los usuarios conectados a esa conversación
-      io.to(conversationId).emit("receiveMessage", {
-        _id: savedMessage._id, // Agregar el _id del mensaje
+      // Emitir el mensaje a todos los usuarios en la conversación
+      const messageToEmit = {
+        _id: savedMessage._id,
         content: savedMessage.content,
         createdAt: savedMessage.createdAt,
         sender: {
-          _id: socket.userId, // Incluir el _id del remitente
-          username: sender.username, // Incluir el username del remitente
+          _id: socket.userId,
+          username: sender ? sender.username : "Usuario",
         },
-      });
+      };
+
+      io.to(conversationId).emit(EVENTS.RECEIVE_MESSAGE, messageToEmit);
     } catch (err) {
       console.error("Error enviando el mensaje:", err.message);
+      socket.emit(EVENTS.ERROR, "Error al enviar el mensaje.");
     }
   });
 
+  // Manejar verificar el estado en línea
+  socket.on(EVENTS.CHECK_ONLINE_STATUS, async (userIdToCheck) => {
+    try {
+      const isOnline = io.sockets.adapter.rooms.has(userIdToCheck);
+      socket.emit(EVENTS.ONLINE_STATUS, { userId: userIdToCheck, isOnline });
+    } catch (err) {
+      console.error("Error al verificar el estado en línea:", err.message);
+      socket.emit(EVENTS.ERROR, "Error al verificar el estado en línea.");
+    }
+  });
+
+  // Manejar eventos de nuevas conversaciones en tiempo real
+  socket.on(EVENTS.NEW_CONVERSATION, (newConversation) => {
+    const userId = socket.userId;
+    const conversationExists = conversations.some(
+      (convo) => String(convo._id) === String(newConversation._id)
+    );
+    if (!conversationExists) {
+      const otherUsers = newConversation.users.filter(user => String(user._id) !== String(userId));
+      const formattedConversation = { ...newConversation, otherUsers };
+      setConversations((prevConversations) => [...prevConversations, formattedConversation]);
+    }
+  });
+
+  // Manejar actualizaciones de conversaciones en tiempo real
+  socket.on(EVENTS.UPDATE_CONVERSATION, (updatedConversation) => {
+    const userId = socket.userId;
+    const otherUsers = updatedConversation.users.filter(user => String(user._id) !== String(userId));
+    const updatedConvo = { ...updatedConversation, otherUsers };
+
+    setConversations((prevConversations) =>
+      prevConversations.map((convo) =>
+        String(convo._id) === String(updatedConvo._id) ? updatedConvo : convo
+      )
+    );
+  });
+  
+  // Manejar desconexión
   socket.on("disconnect", () => {
-    console.log(`Usuario ${socket.userId} se ha desconectado`);
   });
 });
 

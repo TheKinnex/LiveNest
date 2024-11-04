@@ -1,6 +1,6 @@
 import express from "express";
 import {
-    listSubscriptions,
+    listSubscriptionPlans,
     cancelSubscription,
     getUserSubscriptions
 } from "../controllers/suscriptionController.js";
@@ -8,20 +8,19 @@ import { authMiddleware } from "../middlewares/authMiddleware.js"; // Middleware
 
 const router = express.Router();
 
-// @desc Obtener planes de suscripción
-// @route POST /suscription/:chanelId
-router.get("/:channelId", authMiddleware, listSubscriptions);
 
-// @desc Obtener suscripciones activas
-// @route GET /suscription
-router.get("/", authMiddleware, getUserSubscriptions);
-
-// @desc Crear una transacción de PayPal para suscripción
-// @route DELETE /suscription/:chanelId
-router.patch("/:channelId/cancel", authMiddleware, cancelSubscription);
+// @desc Obtener suscripciones activas del usuario
+// @route GET /suscriptions
+router.get('/', authMiddleware, getUserSubscriptions);
 
 
+// @desc Obtener los planes de suscripción
+// @route GET /suscriptions/plans
+router.get("/plans", authMiddleware, listSubscriptionPlans);
 
 
+// @desc Cancelar una suscripción
+// @route DELETE /suscriptions/cancel
+router.patch('/cancel', authMiddleware, cancelSubscription);
 
 export default router;

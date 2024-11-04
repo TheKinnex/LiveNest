@@ -1,5 +1,5 @@
+// models/Post.js
 import mongoose from "mongoose";
-
 
 const postSchema = new mongoose.Schema({
   author: {
@@ -11,12 +11,14 @@ const postSchema = new mongoose.Schema({
     type: String,
     maxlength: 500,
   },
-  media: {
-    type: [{
+  media: [
+    {
       public_id: String,
-      secure_url: String
-    }], // Lista de URLs para imágenes o videos
-  },
+      secure_url: String,
+      type: { type: String, enum: ['image', 'video'], required: true, default: "image" },
+      thumbnail: String,
+    },
+  ],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   createdAt: {
@@ -30,7 +32,8 @@ const postSchema = new mongoose.Schema({
   isDelete: {
     type: Boolean,
     default: false
-  }, tags: [{
+  }, 
+  tags: [{
     type: String, // Los tags serán de tipo cadena
     maxlength: 50, // Opcional: Limitar la longitud de cada tag
   }],

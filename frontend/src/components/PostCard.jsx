@@ -173,17 +173,26 @@ const PostCard = ({ post }) => {
         if (touchStartRef.current - touchEnd < -50) handleSwipe("right");
     };
 
+    const isCommentEdited = (comment) => {
+        if (!comment.updatedAt || !comment.createdAt) return false;
+        const created = new Date(comment.createdAt).getTime();
+        const updated = new Date(comment.updatedAt).getTime();
+        return (updated - created) > 1000; // Más de 1 segundo de diferencia
+    };
+
     return (
         <div className="rounded-lg overflow-hidden">
             <div className="p-2">
                 <div className="flex justify-between">
-                    <div className=" flex items-center">
-                        <img
-                            src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
-                            alt="Profile"
-                            className="w-9 h-w-9 rounded-full mr-3"
-                        />
-                        <span className="font-semibold text-sm">{post.author.username}</span>
+                    <div>
+                        <Link className="flex items-center" to={`/profile/${post.author.username}`}>
+                            <img
+                                src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
+                                alt="Profile"
+                                className="w-9 h-w-9 rounded-full mr-3"
+                            />
+                            <span className="font-semibold text-sm">{post.author.username}</span>
+                        </Link>
                     </div>
                     <button onClick={handleToggleMenu} className="text-gray-400">
                         <FaEllipsisV />
@@ -191,7 +200,7 @@ const PostCard = ({ post }) => {
                 </div>
                 <div className="relative">
                     {isMenuOpen && (
-                        <div className="absolute right-0 top-8 bg-gray-800 text-sm rounded shadow-lg py-2 w-40 z-10">
+                        <div className="absolute right-0 top-0 bg-gray-800 text-sm rounded shadow-lg py-2 w-40 z-10">
                             {post.author._id === userId || userRole === "admin" ? (
                                 <>
                                     <Link to={`/posts/${post._id}/edit`} className='block w-full text-left px-4 py-2 hover:bg-gray-700'>
@@ -219,14 +228,25 @@ const PostCard = ({ post }) => {
             {/* Carrusel de Imágenes */}
             <div className="relative">
                 {post.media.length > 0 && (
-                    <img
-                        src={post.media[currentImageIndex].secure_url}
-                        alt="Post Media"
-                        className="w-full h-[23rem] object-cover"
-                        loading="lazy"
-                        onTouchStart={onTouchStart}
-                        onTouchEnd={onTouchEnd}
-                    />
+                    <>
+                        {post.media[currentImageIndex].type === "video" ? (
+                            <video
+                                src={post.media[currentImageIndex].secure_url}
+                                controls
+                                className="w-full h-[25rem]  object-cover"
+                                onTouchStart={onTouchStart}
+                                onTouchEnd={onTouchEnd}
+                            />
+                        ) : (
+                            <img
+                                src={post.media[currentImageIndex].secure_url}
+                                alt={`Post Media ${currentImageIndex + 1}`}
+                                className="w-full h-[25rem] md:h-[35rem] object-contain"
+                                onTouchStart={onTouchStart}
+                                onTouchEnd={onTouchEnd}
+                            />
+                        )}
+                    </>
                 )}
 
                 {/* Puntos del Carrusel */}
@@ -272,14 +292,14 @@ const PostCard = ({ post }) => {
                         <div key={comment._id} className="text-sm mt-1">
                             <span className="font-semibold">{comment.author.username}:</span> {comment.content}
                         </div>
-                    ))} 
+                    ))}
                 </div>
             </div>
 
             {/* Modal de Comentarios */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end items-end z-50">
-                    <div className="bg-gray-800 p-4 rounded-t-lg w-full max-w-md h-3/4 flex flex-col">
+                    <div className="bg-gray-800 p-4 rounded-t-lg w-full max-w-xl h-3/4 flex flex-col md:absolute md:right-28">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold">Comentarios</h3>
                             <button onClick={closeModal} className="text-white">
@@ -302,9 +322,6 @@ const PostCard = ({ post }) => {
                                                     <span className="font-semibold text-sm">{comment.author.username}</span>
                                                     <p className="text-sm">
                                                         <span className="text-xs text-gray-500">{formatDistanceToNow(new Date(comment.createdAt))} ago</span>
-                                                        {comment.updatedAt && new Date(comment.updatedAt) > new Date(comment.createdAt) && (
-                                                            <span className="text-xs text-gray-400 ml-2">(Editado)</span>
-                                                        )}
                                                     </p>
                                                 </div>
                                                 {(comment.author._id === userId || post.author._id === userId || userRole === "admin") && (
@@ -323,18 +340,18 @@ const PostCard = ({ post }) => {
                                                 )}
                                             </div>
                                             {isEditing === comment._id ? (
-                                                <input
-                                                    type="text"
-                                                    defaultValue={comment.content}
-                                                    className="p-2 mt-1 text-sm bg-gray-700 text-white rounded-md focus:outline-none"
+                                                <input type="text" defaultValue={comment.content} className="p-2 mt-1 text-sm bg-gray-700 text-white rounded-md focus:outline-none"
                                                     onKeyDown={(e) => {
-                                                        if (e.key === "Enter") {
-                                                            handleEditComment(comment._id, e.target.value);
-                                                        }
+                                                        if (e.key === "Enter") handleEditComment(comment._id, e.target.value);
                                                     }}
                                                 />
                                             ) : (
-                                                <span className="text-sm">{comment.content}</span>
+                                                <p className="text-sm">
+                                                    {comment.content}
+                                                    {isCommentEdited(comment) && (
+                                                        <span className="text-xs text-gray-400 ml-2">(Editado)</span>
+                                                    )}
+                                                </p>
                                             )}
                                         </div>
                                     </div>
