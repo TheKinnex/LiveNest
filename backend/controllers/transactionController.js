@@ -15,17 +15,17 @@ export const createSubscriptionTransaction = async (req, res) => {
   try {
     // Verificar si el usuario tiene una suscripción activa
     const user = await User.findById(req.user.id).populate('subscriptions');
-    const activeSubscription = user.subscriptions.find(sub => sub.isActive && sub.plan === 'paid' && new Date(sub.endDate) > new Date());
+    const activeSubscription = user.subscriptions.find(sub => sub.isActive && sub.plan === 'Premium' && new Date(sub.endDate) > new Date());
 
     if (activeSubscription) {
       return res.status(400).json({ msg: "Ya tienes una suscripción premium activa." });
     }
 
-    if (plan === 'free') {
+    if (plan === 'Gratis') {
       // Crear una suscripción gratuita sin transacción
       const subscription = new Subscription({
         subscriber: req.user.id,
-        plan: "free",
+        plan: "Gratis",
         price: 0,
         isActive: true,
       });
@@ -41,7 +41,7 @@ export const createSubscriptionTransaction = async (req, res) => {
       });
     }
 
-    if (plan !== 'paid') {
+    if (plan !== 'Premium') {
       return res.status(400).json({ msg: "Plan de suscripción inválido." });
     }
 
@@ -117,7 +117,7 @@ export const captureSubscriptionTransaction = async (req, res) => {
 
       const subscription = new Subscription({
         subscriber: req.user.id,
-        plan: "paid",
+        plan: "Premium",
         price: 4,
         startDate: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),

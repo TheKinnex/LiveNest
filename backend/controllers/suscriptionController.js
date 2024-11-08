@@ -47,7 +47,7 @@ export const cancelSubscription = async (req, res) => {
     const subscription = await Subscription.findOne({
       subscriber: req.user.id,
       isActive: true,
-      plan: "paid",
+      plan: "Premium",
     });
 
     if (!subscription) {
