@@ -76,7 +76,7 @@ const Register = () => {
   };
 
   return (
-    <main className=' bg-[#111827] w-full h-full text-white'>
+    <main className=' bg-[#111827] w-full h-full lg:h-screen text-white'>
       <div className=' flex flex-col justify-center items-center h-full'>
         <div className='w-80 flex flex-col justify-center gap-y-5'>
           <h2 className=' text-xl font-semibold text-left'>LiveNest</h2>

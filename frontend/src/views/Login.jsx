@@ -73,7 +73,7 @@ const Login = () => {
   };
 
   return (
-    <main className='bg-[#111827] w-full h-full text-white flex justify-center items-center p-4'>
+    <main className='bg-[#111827] w-full h-full lg:h-screen text-white flex justify-center items-center p-4'>
       <div className='flex flex-col justify-center items-center w-full max-w-md'>
         <div className='w-80 flex flex-col justify-center gap-y-5 mb-8'>
           <h2 className='text-xl font-semibold text-left'>LiveNest</h2>
