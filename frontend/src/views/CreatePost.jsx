@@ -189,7 +189,7 @@ const CreatePost = () => {
   }, [mediaFiles]);
 
   return (
-    <main className='bg-gray-900 w-full h-fit flex flex-col'>
+    <main className='bg-gray-900 w-full h-full flex flex-col'>
       <header className=' fixed w-full top-0 flex items-center justify-between px-4 py-3 bg-gray-800 z-20 '>
         <button
           onClick={() => navigate('/')}

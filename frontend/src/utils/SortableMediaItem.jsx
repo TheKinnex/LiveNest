@@ -29,7 +29,7 @@ const SortableMediaItem = ({ id, media, handleRemoveMedia }) => {
       {/* Handle de Arrastre */}
       <div
         {...listeners}
-        className='absolute top-2 left-2 text-gray-300 cursor-grab active:cursor-grabbing z-20'
+        className='absolute top-2 left-2 text-gray-300 cursor-grab active:cursor-grabbing z-0'
         aria-label="Arrastrar medio"
       >
         <FaGripVertical />

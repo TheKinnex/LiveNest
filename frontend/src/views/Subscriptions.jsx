@@ -76,7 +76,7 @@ const Subscriptions = () => {
           Ya tienes una suscripción premium activa.
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mb-16">
         {plans.map((plan) => (
           <div key={plan.plan} className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-semibold text-white mb-4 capitalize">{plan.plan} Plan</h2>

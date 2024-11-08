@@ -61,7 +61,7 @@ const MySubscriptions = () => {
   if (success) return <div className="text-green-500">{success}</div>;
 
   return (
-    <div className="bg-gray-900 min-h-screen flex flex-col items-center p-6">
+    <div className="bg-gray-900 min-h-screen flex flex-col items-center p-6 mb-16">
       <h1 className="text-3xl font-bold text-white mb-8">Gestionar Suscripción</h1>
       {subscription && (
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md text-center">

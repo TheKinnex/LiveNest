@@ -1,10 +1,8 @@
-// src/components/Sidebar.jsx
-
 import { useEffect, useState } from 'react';
 import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import CreatePostModal from './CreatePostModal'; // Asegúrate de que la ruta sea correcta
+import CreatePostModal from './CreatePostModal';
 
 const Sidebar = () => {
     const location = useLocation();
@@ -25,7 +23,6 @@ const Sidebar = () => {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 if (!token) {
-                    // Si no hay token, redirigir a login
                     navigate('/login');
                     return;
                 }
@@ -37,11 +34,10 @@ const Sidebar = () => {
                 setIsPremium(response.data.isPremium);
             } catch (error) {
                 console.error("Error al obtener el perfil del usuario:", error);
-                // Opcional: redirigir a login si hay un error de autenticación
                 navigate('/login');
             }
         };
-        
+
         fetchCurrentUserProfile();
     }, [navigate]);
 
@@ -61,8 +57,8 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* Barra lateral para escritorio */}
-            <div className="hidden lg:flex flex-col h-full w-64 bg-[#1F2937] text-white p-4">
+            {/* Sidebar para pantallas grandes */}
+            <div className=" hidden lg:flex flex-col h-full w-full bg-[#1F2937] text-white p-4 sidebar">
                 <aside className="flex flex-col h-full">
                     <div className="p-5">
                         <h1 className="text-2xl font-bold">LiveNest</h1>
@@ -84,7 +80,6 @@ const Sidebar = () => {
                             <FaSearch className="mr-3" />
                             Buscar
                         </Link>
-                        {/* Botón para abrir el modal en lugar de Link */}
                         <button
                             onClick={handleOpenModal}
                             className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 w-full text-left ${isActive('/create-post') ? 'bg-gray-700' : ''}`}
@@ -138,58 +133,32 @@ const Sidebar = () => {
             </div>
 
             {/* Barra inferior para móviles */}
-            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around py-4 shadow-t">
-                <Link 
-                    to="/" 
-                    className={`flex flex-col items-center ${isActive('/') ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="Inicio"
-                >
+            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around py-4 shadow-t z-50">
+                <Link to="/" className={`flex flex-col items-center ${isActive('/') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Inicio">
                     <FaHome className="text-xl" />
-                    <span className="text-xs">Inicio</span>
                 </Link>
-                <Link 
-                    to="/search" 
-                    className={`flex flex-col items-center ${isActive('/search') ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="Buscar"
-                >
+                <Link to="/search" className={`flex flex-col items-center ${isActive('/search') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Buscar">
                     <FaSearch className="text-xl" />
-                    <span className="text-xs">Buscar</span>
                 </Link>
-                <Link 
-                    to="/create-post" 
-                    className={`flex flex-col items-center ${isActive('/create-post') ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="Crear Post"
-                >
+                <Link to="/create-post" className={`flex flex-col items-center ${isActive('/create-post') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Crear Post">
                     <FaPlus className="text-xl" />
-                    <span className="text-xs">Post</span>
                 </Link>
-                <Link 
-                    to="/conversations" 
-                    className={`flex flex-col items-center ${isActive('/conversations') ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="Mensajes"
-                >
+                <Link to="/conversations" className={`flex flex-col items-center ${isActive('/conversations') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Mensajes">
                     <FaEnvelope className="text-xl" />
-                    <span className="text-xs">Mensajes</span>
                 </Link>
-                <button 
-                    onClick={handleProfileClick} 
-                    className={`flex flex-col items-center ${username && isActive(`/profile/${username}`) ? 'text-purple-500' : 'text-gray-400'}`} 
-                    aria-label="Perfil"
-                >
+                <button onClick={handleProfileClick} className={`flex flex-col items-center ${username && isActive(`/profile/${username}`) ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Perfil">
                     <FaUser className="text-xl" />
-                    <span className="text-xs">Perfil</span>
                 </button>
             </div>
 
             {/* Modal para Crear Post */}
-            <CreatePostModal 
-                isOpen={isModalOpen} 
-                onClose={handleCloseModal} 
-                isPremium={isPremium} 
+            <CreatePostModal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                isPremium={isPremium}
             />
         </>
     );
-
 };
 
 export default Sidebar;

@@ -191,9 +191,9 @@ const CreatePostModal = ({ isOpen, onClose, isPremium }) => {
                 {/* Contenido del Modal */}
                 <div className="flex-1 flex flex-col md:flex-row p-4 overflow-hidden">
                     {/* Sección de Subida y Previsualización */}
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col items-center ">
                         {/* Área de Subida */}
-                        <div className="flex flex-col mb-4">
+                        <div className="flex flex-col mb-4 w-96">
                             <label
                                 htmlFor="media-upload"
                                 className={`inline-flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-purple-500 ${!isPremium && 'opacity-50 cursor-not-allowed'}`}

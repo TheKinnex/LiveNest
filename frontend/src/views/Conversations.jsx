@@ -160,25 +160,24 @@ const Conversations = ({ onSelectConversation, selectedConversationId }) => {
   };
 
   return (
-    <div className="p-4 bg-gray-900 h-full">
+    <div className="p-4 bg-gray-900 h-full ">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-white">Conversaciones</h2>
         <button
           onClick={openModal}
-          className="flex items-center bg-purple-600 text-white px-3 py-2 rounded-md hover:bg-purple-700"
+          className="flex items-center bg-purple-600 text-white px-3 py-2 rounded-md hover:bg-purple-700 "
         >
-          <FaPlus className="mr-2" />
-          Nueva Conversación
+          <FaPlus />
         </button>
       </div>
       {conversations && conversations.length > 0 ? (
-        <ul className="space-y-4">
+        <ul className="space-y-4 ">
           {conversations.map((conversation) => {
-            const otherUser = conversation.otherUsers[0]; // Asumiendo una conversación uno a uno
+            const otherUser = conversation.otherUsers[0]; 
             return (
               <li
                 key={conversation._id}
-                className={`p-4 rounded-md cursor-pointer hover:bg-gray-700 ${
+                className={`p-4 rounded-md cursor-pointer hover:bg-gray-700  ${
                   selectedConversationId === conversation._id ? 'bg-gray-700' : ''
                 }`}
                 onClick={() => onSelectConversation(conversation._id)}

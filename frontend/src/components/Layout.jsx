@@ -11,7 +11,7 @@ const Layout = () => {
     const showSidebar = !hideSidebarRoutes.includes(location.pathname);
 
     return (
-        <div className="flex h-screen flex-col lg:flex-row">
+        <div className="flex h-full lg:h-screen flex-col lg:flex-row">
             {/* Mostrar el Sidebar solo en pantallas grandes */}
             {showSidebar && (
                 <div className="hidden lg:flex w-64 h-full">
