@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
 import PostHome from '../components/PostHome';
-import Suggestions from '../components/Suggestions'; // Importar el componente de sugerencias
+import Suggestions from '../components/Suggestions'; 
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -65,7 +65,6 @@ const Home = () => {
       navigate('/login'); // Redirigir a login si no hay token
       return;
     }
-    // Fetch posts if token exists
     fetchPosts(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
@@ -73,7 +72,7 @@ const Home = () => {
   useEffect(() => {
     const handleScroll = () => {
       if (
-        window.innerHeight + document.documentElement.scrollTop + 100 >=
+        window.inneHreight + document.documentElement.scrollTop + 100 >=
         document.documentElement.offsetHeight &&
         !isFetching &&
         hasMore

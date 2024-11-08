@@ -9,7 +9,7 @@ const subscriptionSchema = new mongoose.Schema({
   },
   plan: {
     type: String,
-    enum: ['free', 'paid'], // Solo "free" y "paid"
+    enum: ['Gratis', 'Premium'],
     required: true,
   },
   price: {
@@ -35,7 +35,7 @@ const subscriptionSchema = new mongoose.Schema({
 
 // Middleware para calcular la fecha de finalización antes de guardar
 subscriptionSchema.pre('save', function(next) {
-  if (this.plan === 'paid' && !this.endDate) {
+  if (this.plan === 'Premium' && !this.endDate) {
     this.endDate = new Date(this.startDate.getTime() + this.durationInDays * 24 * 60 * 60 * 1000);
   }
   next();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList } from "react-icons/fa";
+import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, FaSignOutAlt } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CreatePostModal from './CreatePostModal';
@@ -10,6 +10,7 @@ const Sidebar = () => {
     const [username, setUsername] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
+    const [profilePicture, setProfilePicture] = useState(null);
 
     const isActive = (path) => {
         if (path.includes(':username') && username) {
@@ -32,6 +33,8 @@ const Sidebar = () => {
                 });
                 setUsername(response.data.username);
                 setIsPremium(response.data.isPremium);
+                setProfilePicture(response.data.profilePicture?.secure_url); // Guardar la URL de la imagen de perfil
+
             } catch (error) {
                 console.error("Error al obtener el perfil del usuario:", error);
                 navigate('/login');
@@ -54,6 +57,20 @@ const Sidebar = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
+
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        sessionStorage.removeItem('userId');
+        localStorage.removeItem('role');
+        sessionStorage.removeItem('role');
+        localStorage.removeItem('username');
+        sessionStorage.removeItem('username');
+        navigate('/login');
+    };
+
 
     return (
         <>
@@ -120,20 +137,28 @@ const Sidebar = () => {
                             <FaUser className="mr-3" />
                             Editar Perfil
                         </Link>
-                        <button 
-                            onClick={handleProfileClick} 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${username && isActive(`/profile/${username}`) ? 'bg-gray-700' : ''}`} 
+                        <button
+                            onClick={handleProfileClick}
+                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${username && isActive(`/profile/${username}`) ? 'bg-gray-700' : ''}`}
                             aria-label="Perfil"
                         >
-                            <FaUser className="mr-3" />
+                            {profilePicture ? (
+                                <img src={profilePicture} alt="Perfil" className="h-8 w-h-8 rounded-full mr-3 object-cover" />
+                            ) : (
+                                <FaUser className="mr-3" />
+                            )}
                             Perfil
+                        </button>
+                        <button onClick={handleLogout} className="mt-10 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center justify-center">
+                            <FaSignOutAlt className="mr-2" />
+                            Cerrar Sesión
                         </button>
                     </nav>
                 </aside>
             </div>
 
             {/* Barra inferior para móviles */}
-            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around py-4 shadow-t z-50">
+            <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around items-center py-4 shadow-t z-50">
                 <Link to="/" className={`flex flex-col items-center ${isActive('/') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Inicio">
                     <FaHome className="text-xl" />
                 </Link>
@@ -147,8 +172,16 @@ const Sidebar = () => {
                     <FaEnvelope className="text-xl" />
                 </Link>
                 <button onClick={handleProfileClick} className={`flex flex-col items-center ${username && isActive(`/profile/${username}`) ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Perfil">
-                    <FaUser className="text-xl" />
+                    {profilePicture ? (
+                        <img src={profilePicture} alt="Perfil" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                        <FaUser className="text-xl" />
+                    )}
                 </button>
+                <button onClick={handleLogout} className="flex flex-col items-center text-gray-400 hover:text-purple-500" aria-label="Cerrar Sesión">
+                    <FaSignOutAlt className="text-xl" />
+                </button>
+                
             </div>
 
             {/* Modal para Crear Post */}

@@ -9,7 +9,7 @@ export const listSubscriptionPlans = async (req, res) => {
     // Definir los planes de suscripción con sus beneficios
     const plans = [
       {
-        plan: "free",
+        plan: "Gratis",
         price: 0,
         durationInDays: null,
         description: "Suscripción gratuita con acceso limitado.",
@@ -19,7 +19,7 @@ export const listSubscriptionPlans = async (req, res) => {
         ],
       },
       {
-        plan: "paid",
+        plan: "Premium",
         price: 4,
         durationInDays: 30,
         description: "Suscripción de pago con beneficios premium durante 30 días.",
