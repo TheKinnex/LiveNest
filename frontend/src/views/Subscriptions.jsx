@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Subscriptions = () => {
   const [plans, setPlans] = useState([]);
-  const [currentPlan, setCurrentPlan] = useState('free'); 
+  const [currentPlan, setCurrentPlan] = useState('Gratis'); 
   const [isPremiumActive, setIsPremiumActive] = useState(false); // Estado para suscripción premium activa
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -31,7 +31,7 @@ const Subscriptions = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setCurrentPlan(profileResponse.data.isPremium ? 'paid' : 'free');
+        setCurrentPlan(profileResponse.data.isPremium ? 'Premium' : 'Gratis');
         setIsPremiumActive(profileResponse.data.isPremium);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -45,7 +45,7 @@ const Subscriptions = () => {
   }, [navigate, token]);
 
   const handleSubscribe = async (plan) => {
-    if (isPremiumActive && plan === 'paid') {
+    if (isPremiumActive && plan === 'Premium') {
       setError('Ya tienes una suscripción premium activa.');
       return;
     }
@@ -92,8 +92,8 @@ const Subscriptions = () => {
                 </li>
               ))}
             </ul>
-            {plan.plan === 'free' ? (
-              currentPlan === 'free' ? (
+            {plan.plan === 'Gratis' ? (
+              currentPlan === 'Gratis' ? (
                 <span className="text-green-500 font-semibold">Plan Actual</span>
               ) : (
                 <span className="text-gray-500">Plan Gratis</span>
