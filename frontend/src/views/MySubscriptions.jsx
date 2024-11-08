@@ -22,7 +22,7 @@ const MySubscriptions = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const activeSubscription = response.data.subscriptions.find(sub => sub.isActive && sub.plan === 'paid');
+        const activeSubscription = response.data.subscriptions.find(sub => sub.isActive && sub.plan === 'Premium');
         if (activeSubscription) {
           setSubscription(activeSubscription);
         } else {
