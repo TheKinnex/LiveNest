@@ -33,7 +33,6 @@ const Profile = () => {
         );
 
         if (response.data) {
-          console.log(response.data)
           setUserData(response.data);
           setIsOwner(response.data._id === userId);
           setIsFollowing(response.data.followers.some(follower => follower._id === userId));
