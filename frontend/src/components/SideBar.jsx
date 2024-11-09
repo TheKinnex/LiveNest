@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, FaSignOutAlt, FaTachometerAlt, FaUsers, FaUserSlash, FaFlag, FaRegFileAlt } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CreatePostModal from './CreatePostModal';
@@ -11,6 +11,8 @@ const Sidebar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isPremium, setIsPremium] = useState(false);
     const [profilePicture, setProfilePicture] = useState(null);
+    const [role, setRole] = useState(null);
+    const [isAdminView, setIsAdminView] = useState(false);
 
     const isActive = (path) => {
         if (path.includes(':username') && username) {
@@ -18,6 +20,7 @@ const Sidebar = () => {
         }
         return location.pathname === path;
     };
+
 
     useEffect(() => {
         const fetchCurrentUserProfile = async () => {
@@ -34,7 +37,7 @@ const Sidebar = () => {
                 setUsername(response.data.username);
                 setIsPremium(response.data.isPremium);
                 setProfilePicture(response.data.profilePicture?.secure_url); // Guardar la URL de la imagen de perfil
-
+                setRole(localStorage.getItem("role") || sessionStorage.getItem("role"));
             } catch (error) {
                 console.error("Error al obtener el perfil del usuario:", error);
                 navigate('/login');
@@ -43,6 +46,7 @@ const Sidebar = () => {
 
         fetchCurrentUserProfile();
     }, [navigate]);
+
 
     const handleProfileClick = () => {
         if (username) {
@@ -71,6 +75,7 @@ const Sidebar = () => {
         navigate('/login');
     };
 
+    const toggleAdminView = () => setIsAdminView(!isAdminView);
 
     return (
         <>
@@ -81,111 +86,177 @@ const Sidebar = () => {
                         <h1 className="text-2xl font-bold">LiveNest</h1>
                     </div>
                     <nav className="flex flex-col mt-10 space-y-5 flex-grow">
-                        <Link 
-                            to="/" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Inicio"
-                        >
-                            <FaHome className="mr-3" />
-                            Inicio
-                        </Link>
-                        <Link 
-                            to="/search" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/search') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Buscar"
-                        >
-                            <FaSearch className="mr-3" />
-                            Buscar
-                        </Link>
-                        <button
-                            onClick={handleOpenModal}
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 w-full text-left ${isActive('/create-post') ? 'bg-gray-700' : ''}`}
-                            aria-label="Crear Post"
-                        >
-                            <FaPlus className="mr-3" />
-                            Crear Post
-                        </button>
-                        <Link 
-                            to="/conversations" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/conversations') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Mensajes"
-                        >
-                            <FaEnvelope className="mr-3" />
-                            Mensajes
-                        </Link>
-                        <Link 
-                            to="/subscriptions" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/subscriptions') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Suscripciones"
-                        >
-                            <FaStar className="mr-3" />
-                            Suscripciones
-                        </Link>
-                        <Link 
-                            to="/my-subscriptions" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/my-subscriptions') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Mis Suscripciones"
-                        >
-                            <FaClipboardList className="mr-3" />
-                            Mis Suscripciones
-                        </Link>
-                        <Link 
-                            to="/account/edit" 
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/account/edit') ? 'bg-gray-700' : ''}`} 
-                            aria-label="Editar Perfil"
-                        >
-                            <FaUser className="mr-3" />
-                            Editar Perfil
-                        </Link>
-                        <button
-                            onClick={handleProfileClick}
-                            className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${username && isActive(`/profile/${username}`) ? 'bg-gray-700' : ''}`}
-                            aria-label="Perfil"
-                        >
-                            {profilePicture ? (
-                                <img src={profilePicture} alt="Perfil" className="h-8 w-h-8 rounded-full mr-3 object-cover" />
-                            ) : (
-                                <FaUser className="mr-3" />
-                            )}
-                            Perfil
-                        </button>
+                        {role === 'admin' && (
+                            <button
+                                onClick={toggleAdminView}
+                                className="flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 text-left"
+                                aria-label="Dashboard"
+                            >
+                                <FaTachometerAlt className="mr-3" />
+                                Dashboard
+                            </button>
+                        )}
+                        {isAdminView ? (
+                            <>
+                                <Link to="/admin/users" className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/admin/users') ? 'bg-gray-700' : ''}`} aria-label="Usuarios">
+                                    <FaUsers className="mr-3" />
+                                    Usuarios
+                                </Link>
+                                <Link to="/admin/subscriptions" className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/admin/subscriptions') ? 'bg-gray-700' : ''}`} aria-label="Suscripciones">
+                                    <FaClipboardList className="mr-3" />
+                                    Suscripciones
+                                </Link>
+                                <Link to="/admin/blocked-users" className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/admin/blocked-users') ? 'bg-gray-700' : ''}`} aria-label="Usuarios Bloqueados">
+                                    <FaUserSlash className="mr-3" />
+                                    Bloqueados
+                                </Link>
+                                <Link to="/admin/reports" className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/admin/reports') ? 'bg-gray-700' : ''}`} aria-label="Reportes">
+                                    <FaFlag className="mr-3" />
+                                    Reportes
+                                </Link>
+                                <Link to="/admin/posts" className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/admin/posts') ? 'bg-gray-700' : ''}`} aria-label="Posts">
+                                    <FaRegFileAlt className="mr-3" />
+                                    Posts
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Inicio"
+                                >
+                                    <FaHome className="mr-3" />
+                                    Inicio
+                                </Link>
+                                <Link
+                                    to="/search"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/search') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Buscar"
+                                >
+                                    <FaSearch className="mr-3" />
+                                    Buscar
+                                </Link>
+                                <button
+                                    onClick={handleOpenModal}
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 w-full text-left ${isActive('/create-post') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Crear Post"
+                                >
+                                    <FaPlus className="mr-3" />
+                                    Crear Post
+                                </button>
+                                <Link
+                                    to="/conversations"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/conversations') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Mensajes"
+                                >
+                                    <FaEnvelope className="mr-3" />
+                                    Mensajes
+                                </Link>
+                                <Link
+                                    to="/subscriptions"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/subscriptions') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Suscripciones"
+                                >
+                                    <FaStar className="mr-3" />
+                                    Suscripciones
+                                </Link>
+                                <Link
+                                    to="/my-subscriptions"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/my-subscriptions') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Mis Suscripciones"
+                                >
+                                    <FaClipboardList className="mr-3" />
+                                    Mis Suscripciones
+                                </Link>
+                                <Link
+                                    to="/account/edit"
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${isActive('/account/edit') ? 'bg-gray-700' : ''}`}
+                                    aria-label="Editar Perfil"
+                                >
+                                    <FaUser className="mr-3" />
+                                    Editar Perfil
+                                </Link>
+                                <button
+                                    onClick={handleProfileClick}
+                                    className={`flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 ${username && isActive(`/profile/${username}`) ? 'bg-gray-700' : ''}`}
+                                    aria-label="Perfil"
+                                >
+                                    {profilePicture ? (
+                                        <img src={profilePicture} alt="Perfil" className="h-8 w-h-8 rounded-full mr-3 object-cover" />
+                                    ) : (
+                                        <FaUser className="mr-3" />
+                                    )}
+                                    Perfil
+                                </button>
+                            </>
+                        )}
                         <button onClick={handleLogout} className="mt-10 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center justify-center">
                             <FaSignOutAlt className="mr-2" />
                             Cerrar Sesión
                         </button>
                     </nav>
                 </aside>
-            </div>
+            </div >
 
             {/* Barra inferior para móviles */}
             <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around items-center py-4 shadow-t z-50">
-                <Link to="/" className={`flex flex-col items-center ${isActive('/') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Inicio">
-                    <FaHome className="text-xl" />
-                </Link>
-                <Link to="/search" className={`flex flex-col items-center ${isActive('/search') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Buscar">
-                    <FaSearch className="text-xl" />
-                </Link>
-                <Link to="/create-post" className={`flex flex-col items-center ${isActive('/create-post') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Crear Post">
-                    <FaPlus className="text-xl" />
-                </Link>
-                <Link to="/conversations" className={`flex flex-col items-center ${isActive('/conversations') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Mensajes">
-                    <FaEnvelope className="text-xl" />
-                </Link>
-                <button onClick={handleProfileClick} className={`flex flex-col items-center ${username && isActive(`/profile/${username}`) ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Perfil">
-                    {profilePicture ? (
-                        <img src={profilePicture} alt="Perfil" className="h-8 w-8 rounded-full object-cover" />
-                    ) : (
-                        <FaUser className="text-xl" />
-                    )}
-                </button>
+                {role === 'admin' && (
+                    <button onClick={toggleAdminView} className="flex flex-col items-center text-gray-400 hover:text-purple-500" aria-label="Dashboard">
+                        <FaTachometerAlt className="text-xl" />
+                    </button>
+                )}
+
+                {isAdminView ? (
+                    <>
+                        <Link to="/admin/users" className={`flex flex-col items-center ${isActive('/admin/users') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Usuarios">
+                            <FaUsers className="text-xl" />
+                        </Link>
+                        <Link to="/admin/subscriptions" className={`flex flex-col items-center ${isActive('/admin/subscriptions') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Suscripciones">
+                            <FaClipboardList className="text-xl" />
+                        </Link>
+                        <Link to="/admin/blocked-users" className={`flex flex-col items-center ${isActive('/admin/blocked-users') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Bloqueados">
+                            <FaUserSlash className="text-xl" />
+                        </Link>
+                        <Link to="/admin/reports" className={`flex flex-col items-center ${isActive('/admin/reports') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Reportes">
+                            <FaFlag className="text-xl" />
+                        </Link>
+                        <Link to="/admin/posts" className={`flex flex-col items-center ${isActive('/admin/posts') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Posts">
+                            <FaRegFileAlt className="text-xl" />
+                        </Link>
+                    </>
+                ) : (
+                    <>
+                        <Link to="/" className={`flex flex-col items-center ${isActive('/') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Inicio">
+                            <FaHome className="text-xl" />
+                        </Link>
+                        <Link to="/search" className={`flex flex-col items-center ${isActive('/search') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Buscar">
+                            <FaSearch className="text-xl" />
+                        </Link>
+                        <Link to="/create-post" className={`flex flex-col items-center ${isActive('/create-post') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Crear Post">
+                            <FaPlus className="text-xl" />
+                        </Link>
+                        <Link to="/conversations" className={`flex flex-col items-center ${isActive('/conversations') ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Mensajes">
+                            <FaEnvelope className="text-xl" />
+                        </Link>
+                        <button onClick={handleProfileClick} className={`flex flex-col items-center ${username && isActive(`/profile/${username}`) ? 'text-purple-500' : 'text-gray-400'}`} aria-label="Perfil">
+                            {profilePicture ? (
+                                <img src={profilePicture} alt="Perfil" className="h-8 w-8 rounded-full object-cover" />
+                            ) : (
+                                <FaUser className="text-xl" />
+                            )}
+                        </button>
+                    </>
+                )}
+
                 <button onClick={handleLogout} className="flex flex-col items-center text-gray-400 hover:text-purple-500" aria-label="Cerrar Sesión">
                     <FaSignOutAlt className="text-xl" />
                 </button>
-                
             </div>
 
+
             {/* Modal para Crear Post */}
-            <CreatePostModal
+            < CreatePostModal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 isPremium={isPremium}

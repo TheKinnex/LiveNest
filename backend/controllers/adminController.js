@@ -7,7 +7,7 @@ import Subscriptions from '../models/Subscription.js'
 // @route GET /admin/users
 export const listUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // Excluir el campo contraseña
+    const users = await User.find().select("-password");
     res.json(users);
   } catch (err) {
     console.error(err.message);
@@ -86,14 +86,7 @@ export const editUser = async (req, res) => {
 
 // @desc Bloquear o eliminar un usuario
 // @route DELETE /admin/users/:userId
-
-/* 
-
-Si el controlador no se encargara solamente del softDelete debe tener
-un nombre mas representativo de su funcion
-
-*/
-export const deleteUser = async (req, res) => {
+export const softDelete = async (req, res) => {
   try {
     const { action } = req.body; // 'block' para bloquear, 'delete' para eliminar
 
@@ -216,3 +209,15 @@ export const deletePost = async (req, res) => {
   }
 };
 
+
+// @desc Listar todos los posts
+// @route GET /admin/posts
+export const listPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ isDelete: false }).populate('author', 'username');
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+};

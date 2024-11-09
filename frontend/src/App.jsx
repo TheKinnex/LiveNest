@@ -17,14 +17,8 @@ import MySubscriptions from './views/MySubscriptions';
 import PaymentSuccess from './views/PaymentSuccess';
 import PaymentCancel from './views/PaymentCancel';
 
-/*
 import AdminLayout from './components/AdminLayout';
-import AdminUsers from './views/admin/AdminUsers';
-import AdminSubscriptions from './views/admin/AdminSubscriptions';
-import AdminBlockedUsers from './views/admin/AdminBlockedUsers';
-import AdminReports from './views/admin/AdminReports';
-import AdminPosts from './views/admin/AdminPosts';
-*/
+import Users from './views/admin/Users';
 
 const App = () => {
 
@@ -55,17 +49,10 @@ const App = () => {
           <Route path="my-subscriptions" element={<MySubscriptions />} />
         </Route>
 
-        {/* <Route path="/admin" element={<AdminLayout />}>
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="subscriptions" element={<AdminSubscriptions />} />
-          <Route path="blocked-users" element={<AdminBlockedUsers />} />
-          <Route path="reports" element={<AdminReports />} />
-          <Route path="posts" element={<AdminPosts />} />
-
-          <Route index element={<Navigate to="users" replace />} />
+        <Route path="admin" element={<AdminLayout />}>
+          <Route path="users" element={<Users />} />
         </Route>
-        */}
-        
+
 
         {/* Rutas de Pago sin Layout */}
         <Route path="/payments/success" element={<PaymentSuccess />} />
