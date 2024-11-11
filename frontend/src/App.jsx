@@ -19,6 +19,11 @@ import PaymentCancel from './views/PaymentCancel';
 
 import AdminLayout from './components/AdminLayout';
 import Users from './views/admin/Users';
+import BlockedAccount from './views/BlockedAccount';
+import AdminSubscriptions from './views/admin/Subscriptions'
+import BlockedUsers from './views/admin/BlockedUsers';
+import AdminPosts from './views/admin/Posts';
+import Reports from './views/admin/Reports';
 
 const App = () => {
 
@@ -33,6 +38,7 @@ const App = () => {
         <Route path="/verify" element={<Verify />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/blocked" element={<BlockedAccount />} />
 
         {/* Rutas con Layout */}
         <Route element={<Layout />}>
@@ -51,6 +57,10 @@ const App = () => {
 
         <Route path="admin" element={<AdminLayout />}>
           <Route path="users" element={<Users />} />
+          <Route path="subscriptions" element={<AdminSubscriptions />} />
+          <Route path="blocked-users" element={<BlockedUsers />} />
+          <Route path="posts" element={<AdminPosts />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
 
 

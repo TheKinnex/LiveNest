@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from 'react-router-dom';
-import PostModal from './PostModal'; // Asegúrate de que la ruta sea correcta
+import PostModal from './PostModal';
 
 const PostHome = ({ post }) => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");

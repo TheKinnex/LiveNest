@@ -46,13 +46,14 @@ export const getUserPosts = async (req, res) => {
 // @route GET /admin/subscriptions
 export const listSubscriptions = async (req, res) => {
   try {
-    const subscriptions = await Subscriptions.find();
+    const subscriptions = await Subscriptions.find().populate('subscriber', 'username');
     res.json(subscriptions);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 // @desc Editar un usuario
 // @route PATCH /admin/users/:userId
@@ -84,9 +85,9 @@ export const editUser = async (req, res) => {
 };
 
 
-// @desc Bloquear o eliminar un usuario
-// @route DELETE /admin/users/:userId
-export const softDelete = async (req, res) => {
+// @desc Bloquear o Desbloquear
+// @route PATCH /admin/users/:userId/block
+export const softBlockAndDelete = async (req, res) => {
   try {
     const { action } = req.body; // 'block' para bloquear, 'delete' para eliminar
 
@@ -96,61 +97,40 @@ export const softDelete = async (req, res) => {
       return res.status(404).json({ msg: "Usuario no encontrado" });
     }
 
-    
-
-    // Verifica ya que tienes un error en la propiedad "isDeleted" esta no existe
     if (action === "block") {
       user.isBlocked = true;
-      //user.isDeleted = false; // Por si ya estaba marcado como eliminado
-
-      /* 
-      
-      La voy a cambiar para poder probarla
-      
-      */
-
       user.isDelete = false;
     } else if (action === "delete") {
-      /* 
-      
-      igual aqui "isDeleted" no existe
-      
-      */
-      //user.isDeleted = true;
-
-      user.isDelete = true;
-      user.isBlocked = false; // Por si ya estaba bloqueado
+      user.isBlocked = false;
+      user.isDelete = false;
     } else {
       return res.status(400).json({ msg: "Acción no válida" });
     }
 
     await user.save();
-
-    const statusMsg = action === "block" ? "bloqueado" : "eliminado";
-    res.json({ msg: `Usuario ${statusMsg} correctamente` });
+    const statusMsg = action === "block" ? "bloqueado" : "desbloqueado";
+    res.json({ msg: `Usuario ${statusMsg} correctamente`, user });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
   }
 };
 
+
 // @desc Desbloquear un usuario
 // @route PATCH /admin/users/:userId/unblock
 export const unblockUser = async (req, res) => {
   try {
-    // Buscar el usuario por su ID
     const user = await User.findById(req.params.userId);
 
     if (!user) {
       return res.status(404).json({ msg: 'Usuario no encontrado' });
     }
 
-    // Verificar si el usuario ya está desbloqueado
     if (!user.isBlocked) {
       return res.status(400).json({ msg: 'El usuario ya está desbloqueado' });
     }
 
-    // Desbloquear el usuario
     user.isBlocked = false;
     await user.save();
 
@@ -161,12 +141,21 @@ export const unblockUser = async (req, res) => {
   }
 };
 
+
+// @desc Obtener todos los reportes
+// @route GET /admin/reports
 // @desc Obtener todos los reportes
 // @route GET /admin/reports
 export const getAllReports = async (req, res) => {
   try {
     const reports = await Report.find()
-      .populate('post', 'content author') // Popular detalles del post
+      .populate({
+        path: 'post',
+        populate: {
+          path: 'author',
+          select: 'username'
+        }
+      })
       .populate('reportedBy', 'username'); // Popular detalles del usuario que hizo el reporte
 
     res.json(reports);
@@ -175,6 +164,48 @@ export const getAllReports = async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 };
+
+
+// @desc Marcar reporte como revisado
+// @route PATCH /admin/reports/:reportId/review
+export const markReportAsReviewed = async (req, res) => {
+  try {
+      const report = await Report.findById(req.params.reportId);
+
+      if (!report) {
+          return res.status(404).json({ msg: 'Reporte no encontrado' });
+      }
+
+      report.isReviewed = true;
+      await report.save();
+
+      res.json({ msg: 'Reporte marcado como revisado', report });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Error en el servidor');
+  }
+};
+
+// @desc Eliminar reporte (soft delete)
+// @route DELETE /admin/reports/:reportId
+export const deleteReport = async (req, res) => {
+  try {
+      const report = await Report.findById(req.params.reportId);
+
+      if (!report) {
+          return res.status(404).json({ msg: 'Reporte no encontrado' });
+      }
+
+      report.isDelete = true;
+      await report.save();
+
+      res.json({ msg: 'Reporte eliminado' });
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Error en el servidor');
+  }
+};
+
 
 // @desc Eliminar contenido inapropiado (marcar como eliminado)
 // @route DELETE /admin/posts/:postId

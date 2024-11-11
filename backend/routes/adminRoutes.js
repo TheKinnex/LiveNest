@@ -4,12 +4,15 @@ import { adminMiddleware } from "../middlewares/adminMiddleware.js";
 import {
   listUsers,
   editUser,
-  softDelete,
+  softBlockAndDelete,
   unblockUser,
   deletePost,
   getAllReports,
   getUserSubscriptions,
   getUserPosts,
+  markReportAsReviewed,
+  deleteReport,
+  listPosts,
   listSubscriptions
 } from "../controllers/adminController.js";
 
@@ -22,7 +25,7 @@ router.get("/users", authMiddleware, adminMiddleware, listUsers);
 router.get("/users/:userId/subscriptions", authMiddleware, adminMiddleware, getUserSubscriptions);
 
 // Ruta para obtener todos los posts 
-router.get('/posts', authMiddleware, adminMiddleware, getAllReports);
+router.get('/posts', authMiddleware, adminMiddleware, listPosts);
 
 // Obtener posts de un usuario específico
 router.get("/users/:userId/posts", authMiddleware, adminMiddleware, getUserPosts);
@@ -33,16 +36,24 @@ router.get("/subscriptions", authMiddleware, adminMiddleware, listSubscriptions)
 // Editar un usuario
 router.patch("/users/:userId", authMiddleware, adminMiddleware, editUser);
 
-// Bloquear o eliminar un usuario
-router.delete("/users/:userId", authMiddleware, adminMiddleware, softDelete);
 
 router.delete('/posts/:postId', authMiddleware, adminMiddleware, deletePost);
+
+// Ruta para bloquear un usuario
+router.patch("/users/:userId/block", authMiddleware, adminMiddleware, softBlockAndDelete);
 
 // Ruta para desbloquear un usuario
 router.patch('/users/:userId/unblock', authMiddleware, adminMiddleware, unblockUser);
 
+
 // Ruta para obtener todos los reportes 
 router.get('/reports', authMiddleware, adminMiddleware, getAllReports);
+
+// Rutas para Marcar como revisado
+router.patch('/reports/:reportId/review', authMiddleware, adminMiddleware, markReportAsReviewed);
+
+//Ruta para eliminar reporte (softDelete)
+router.delete('/reports/:reportId', authMiddleware, adminMiddleware, deleteReport);
 
 
 

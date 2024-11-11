@@ -49,14 +49,12 @@ const Login = () => {
         localStorage.setItem('userId', user.id);
         localStorage.setItem('role', user.role);
         localStorage.setItem('username', user.username);
-
       } else {
         sessionStorage.setItem('token', token);
         sessionStorage.setItem('userId', user.id);
         sessionStorage.setItem('role', user.role);
         sessionStorage.setItem('username', user.username);
 
-        //Eliminar localstorage por si token esta vencido
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('role');
@@ -65,15 +63,21 @@ const Login = () => {
 
       navigate('/');
     } catch (error) {
-      setErrorMessage('Credenciales incorrectas o problema de conexión');
+      if (error.response && error.response.status === 403) {
+        setErrorMessage('Tu cuenta está bloqueada. Contacta a victoriusd4@gmail.com para soporte.');
+      } else {
+        setErrorMessage('Credenciales incorrectas o problema de conexión');
+      }
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+
+
   return (
-    <main className='bg-[#111827] w-full h-screen text-white flex justify-center items-center p-4'>
+    <main className='bg-[#111827] w-full min-h-screen text-white flex justify-center items-center p-4'>
       <div className='flex flex-col justify-center items-center w-full max-w-md'>
         <div className='w-80 flex flex-col justify-center gap-y-5 mb-8'>
           <h2 className='text-xl font-semibold text-left'>LiveNest</h2>

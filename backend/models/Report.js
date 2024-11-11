@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const reportSchema = new mongoose.Schema({
   post: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Post',
+    ref: "Post",
     required: true,
   },
   reportedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   reason: {
@@ -20,7 +20,9 @@ const reportSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isReviewed: { type: Boolean, default: false },
+  isDelete: { type: Boolean, default: false },
 });
 
-const Report = mongoose.model('Report', reportSchema);
+const Report = mongoose.model("Report", reportSchema);
 export default Report;

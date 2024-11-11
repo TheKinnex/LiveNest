@@ -36,11 +36,15 @@ const Sidebar = () => {
                 });
                 setUsername(response.data.username);
                 setIsPremium(response.data.isPremium);
-                setProfilePicture(response.data.profilePicture?.secure_url); // Guardar la URL de la imagen de perfil
+                setProfilePicture(response.data.profilePicture?.secure_url);
                 setRole(localStorage.getItem("role") || sessionStorage.getItem("role"));
             } catch (error) {
-                console.error("Error al obtener el perfil del usuario:", error);
-                navigate('/login');
+                if (error.response && error.response.status === 403) {
+                    navigate('/blocked'); // Redirigir si el usuario está bloqueado
+                } else {
+                    console.error("Error al obtener el perfil del usuario:", error);
+                    navigate('/login');
+                }
             }
         };
 

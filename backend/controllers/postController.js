@@ -438,7 +438,6 @@ export const deletePost = async (req, res) => {
         .json({ msg: "No tienes permiso para eliminar este post" });
     }
 
-    // Soft delete, si no quieres eliminar físicamente el post
     post.isDelete = true;
     await post.save();
 
