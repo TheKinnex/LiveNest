@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from 'react-router-dom';
+import defaultIcon from '../assets/default-avatar.png'
 
 const PostCard = ({ post }) => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -187,7 +188,7 @@ const PostCard = ({ post }) => {
                     <div>
                         <Link className="flex items-center" to={`/profile/${post.author.username}`}>
                             <img
-                                src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
+                                src={post.author.profilePicture?.secure_url || defaultIcon}
                                 alt="Profile"
                                 className="w-9 h-w-9 rounded-full mr-3"
                             />
@@ -312,7 +313,7 @@ const PostCard = ({ post }) => {
                                 comments.filter(comment => !comment.isDelete).map((comment) => (
                                     <div key={comment._id} className="flex items-start space-x-2 mb-2">
                                         <img
-                                            src={comment.author.profilePicture?.secure_url || '/default-avatar.png'}
+                                            src={comment.author.profilePicture?.secure_url || defaultIcon}
                                             alt="Commenter"
                                             className="w-8 h-8 rounded-full"
                                         />

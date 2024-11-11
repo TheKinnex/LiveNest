@@ -5,6 +5,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaRegHeart, FaEllipsisV, FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import defaultIcon from '../assets/default-avatar.png'
 
 const PostModal = ({ postId, onClose }) => {
     const [post, setPost] = useState(null);
@@ -269,7 +270,7 @@ const PostModal = ({ postId, onClose }) => {
                         <div >
                             <Link className="flex items-center" to={`/profile/${post.author.username}`}>
                                 <img
-                                    src={post.author.profilePicture?.secure_url || '/default-avatar.png'}
+                                    src={post.author.profilePicture?.secure_url || defaultIcon}
                                     alt="Profile"
                                     className="w-10 h-10 rounded-full mr-3"
                                 />
@@ -321,7 +322,7 @@ const PostModal = ({ postId, onClose }) => {
                     <div className="flex-1 overflow-y-auto border-t border-gray-700 p-4 space-y-4 max-h-96">
                         {post.comments.map((comment) => (
                             <div key={comment._id} className="flex items-start space-x-3">
-                                <img src={comment.author.profilePicture?.secure_url || '/default-avatar.png'} alt="Commenter" className="w-8 h-8 rounded-full" />
+                                <img src={comment.author.profilePicture?.secure_url || defaultIcon} alt="Commenter" className="w-8 h-8 rounded-full" />
                                 <div className="w-64 break-words overflow-x-hidden">
                                     <div className="flex items-center">
                                         <span className="font-semibold mr-2">{comment.author.username}</span>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
+import defaultIcon from '../assets/default-avatar.png'
 
 const Suggestions = () => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
@@ -93,7 +94,7 @@ const Suggestions = () => {
             <li key={user._id} className="flex items-center justify-between mb-4">
               <Link to={`/profile/${user.username}`} className="flex items-center space-x-3">
                 <img
-                  src={user.profilePicture?.secure_url || '/default-avatar.png'}
+                  src={user.profilePicture?.secure_url || defaultIcon}
                   alt={user.username}
                   className="w-10 h-10 rounded-full"
                 />

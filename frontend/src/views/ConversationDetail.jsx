@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 import axios from 'axios';
 import { FaPaperPlane, FaTimes } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
+import defaultIcon from '../assets/default-avatar.png'
 
 const ConversationDetail = ({ conversationId, isDesktop, onExit }) => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const ConversationDetail = ({ conversationId, isDesktop, onExit }) => {
         });
         const otherUser = res.data.users.find(user => user._id !== userId);
         setUsername(otherUser ? otherUser.username : "Usuario");
-        setProfilePicture(otherUser.profilePicture?.secure_url || '/default-avatar.png');
+        setProfilePicture(otherUser.profilePicture?.secure_url || defaultIcon);
 
         // Verificar el estado en línea del otro usuario al cargar la conversación
         socket.emit('checkOnlineStatus', otherUser._id);

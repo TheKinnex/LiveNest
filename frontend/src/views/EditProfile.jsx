@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import defaultIcon from '../assets/default-avatar.png'
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const EditProfile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [currentProfilePicture, setCurrentProfilePicture] = useState('/default-avatar.png'); // Imagen actual de perfil
+  const [currentProfilePicture, setCurrentProfilePicture] = useState(defaultIcon); // Imagen actual de perfil
 
   // Cargar los datos actuales del perfil cuando el componente se monte
   useEffect(() => {
@@ -33,7 +34,7 @@ const EditProfile = () => {
         // Establecer los valores iniciales en el estado
         setUsername(response.data.username);
         setBio(response.data.bio || '');
-        setCurrentProfilePicture(response.data.profilePicture?.secure_url || '/default-avatar.png');
+        setCurrentProfilePicture(response.data.profilePicture?.secure_url || defaultIcon);
       } catch (error) {
         console.error("Error al cargar el perfil:", error);
         setErrorMsg("No se pudo cargar la información del perfil.");

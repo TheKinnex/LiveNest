@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 import { FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import defaultIcon from '../assets/default-avatar.png'
 
 Modal.setAppElement('#root');
 
@@ -185,7 +186,7 @@ const Conversations = ({ onSelectConversation, selectedConversationId }) => {
                 <div className="flex items-center">
                   {/* Reemplazar el ícono de marcador de posición con la imagen de perfil */}
                   <img
-                    src={otherUser.profilePicture?.secure_url || '/default-avatar.png'}
+                    src={otherUser.profilePicture?.secure_url || defaultIcon}
                     alt={`${otherUser.username}'s profile`}
                     className="h-10 w-10 rounded-full mr-4 object-cover"
                   />
@@ -235,7 +236,7 @@ const Conversations = ({ onSelectConversation, selectedConversationId }) => {
               <li key={user._id} className="flex items-center justify-between bg-gray-700 p-2 rounded-md mb-2">
                 <div className="flex items-center">
                   <img
-                    src={user.profilePicture?.secure_url || '/default-avatar.png'}
+                    src={user.profilePicture?.secure_url || defaultIcon}
                     alt={`${user.username}'s profile`}
                     className="h-8 w-8 rounded-full mr-3 object-cover"
                   />

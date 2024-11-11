@@ -3,6 +3,7 @@ import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CreatePostModal from './CreatePostModal';
+import defaultIcon from '../assets/default-avatar.png'
 
 const Sidebar = () => {
     const location = useLocation();
@@ -36,7 +37,7 @@ const Sidebar = () => {
                 });
                 setUsername(response.data.username);
                 setIsPremium(response.data.isPremium);
-                setProfilePicture(response.data.profilePicture?.secure_url);
+                setProfilePicture(response.data.profilePicture?.secure_url || defaultIcon);
                 setRole(localStorage.getItem("role") || sessionStorage.getItem("role"));
             } catch (error) {
                 if (error.response && error.response.status === 403) {

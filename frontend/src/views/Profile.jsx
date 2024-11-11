@@ -6,6 +6,7 @@ import { LuLayoutGrid } from "react-icons/lu";
 import { CiStreamOn } from "react-icons/ci";
 import { IoIosPhotos } from "react-icons/io";
 import { FaStar } from "react-icons/fa"; // Icono para la pelota amarilla
+import defaultIcon from '../assets/default-avatar.png'
 
 const Profile = () => {
   const { profileUsername } = useParams();
@@ -141,7 +142,7 @@ const Profile = () => {
       {/* Header con foto de perfil, nombre de usuario y pelota amarilla si es premium */}
       <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-5 w-full max-w-3xl">
         <img
-          src={userData.profilePicture?.secure_url || '/default-avatar.png'}
+          src={userData.profilePicture?.secure_url || defaultIcon}
           alt="Profile"
           className="w-20 h-20 md:w-24 md:h-24 bg-gray-600 rounded-full border-4 border-purple-500"
         />
