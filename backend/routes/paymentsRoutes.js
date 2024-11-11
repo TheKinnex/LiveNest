@@ -19,7 +19,7 @@ router.get("/success", captureSubscriptionTransaction);
 
 // @desc Manejar la cancelación del pago
 // @route GET /payments/cancel
-router.get('/cancel', authMiddleware, cancelSubscriptionTransaction);
+router.get('/cancel', cancelSubscriptionTransaction);
 
 // @desc Obtener historial de pagos del usuario logueado
 // @route GET /payments/history
