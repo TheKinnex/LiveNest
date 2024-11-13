@@ -103,7 +103,7 @@ const Posts = () => {
                             {post.author.username}
                         </Link>
                         </h3>
-                        <p>{post.content}</p>
+                        <p className=' truncate'>{post.content}</p>
 
                         <div className="relative flex justify-center items-center mt-2">
                             {post.media.length > 0 && (
