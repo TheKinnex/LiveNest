@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { FaComments } from 'react-icons/fa';
-import LogoTipo from '../assets/Proyecto Nuevo.png'
+import LogoTipo from '../assets/Logotipo.png'
 const HeaderMobile = () => {
     const navigate = useNavigate();
 

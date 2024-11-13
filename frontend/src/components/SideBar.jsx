@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CreatePostModal from './CreatePostModal';
 import defaultIcon from '../assets/default-avatar.png'
-import LogoTipo from '../assets/Proyecto Nuevo.png'
+import LogoTipo from '../assets/Logotipo.png'
 
 const Sidebar = () => {
     const location = useLocation();
