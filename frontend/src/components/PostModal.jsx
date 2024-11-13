@@ -5,7 +5,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { FaRegHeart, FaEllipsisV, FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import defaultIcon from '../assets/default-avatar.png'
+import defaultIcon from '../assets/default-avatar.png';
 
 const PostModal = ({ postId, onClose }) => {
     const [post, setPost] = useState(null);
@@ -86,7 +86,6 @@ const PostModal = ({ postId, onClose }) => {
         }
     };
 
-
     const handleEditComment = async (commentId, newContent) => {
         try {
             const response = await axios.patch(
@@ -109,13 +108,11 @@ const PostModal = ({ postId, onClose }) => {
         }
     };
 
-
     const handleToggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
     const handleToggleLike = async () => {
-
         if (!token) return;
 
         try {
@@ -156,7 +153,6 @@ const PostModal = ({ postId, onClose }) => {
 
     const handleToggleFollow = async () => {
         try {
-
             const userId = post.author._id;
             const response = await axios.post(
                 `${import.meta.env.VITE_API_URL}/profile/${userId}/toggleFollow`,
@@ -177,7 +173,6 @@ const PostModal = ({ postId, onClose }) => {
         }
 
         try {
-
             await axios.post(
                 `${import.meta.env.VITE_API_URL}/posts/${postId}/report`,
                 { reason },
@@ -206,7 +201,6 @@ const PostModal = ({ postId, onClose }) => {
         }
     };
 
-
     const isCommentEdited = (comment) => {
         if (!comment.updatedAt || !comment.createdAt) return false;
         const created = new Date(comment.createdAt).getTime();
@@ -222,24 +216,24 @@ const PostModal = ({ postId, onClose }) => {
             onClick={handleClose}
         >
             <div
-                className="bg-gray-900 flex w-full max-w-5xl rounded-lg overflow-hidden"
+                className="bg-gray-900 flex w-[80%] max-w-4xl h-[90%] rounded-lg overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Image container and navigation */}
-                <div className="relative flex-2 bg-black flex items-center justify-center max-w-[70%]">
+                <div className="relative flex-2 bg-black flex items-center justify-center max-w-[65%] h-full">
                     {post.media.length > 0 && (
                         <>
                             {post.media[currentImageIndex].type === "video" ? (
                                 <video
                                     src={post.media[currentImageIndex].secure_url}
                                     controls
-                                    className="object-contain h-[44.81rem]"
+                                    className="object-contain h-full"
                                 />
                             ) : (
                                 <img
                                     src={post.media[currentImageIndex].secure_url}
                                     alt={`Post Media ${currentImageIndex + 1}`}
-                                    className="object-contain h-[44.81rem]"
+                                    className="object-contain h-full"
                                 />
                             )}
                         </>
@@ -264,10 +258,10 @@ const PostModal = ({ postId, onClose }) => {
                 </div>
 
                 {/* Right side details section */}
-                <div className="w-80 bg-gray-900 flex flex-col text-white relative">
+                <div className="w-[35%] bg-gray-900 flex flex-col text-white relative h-full">
                     {/* Header with options menu */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-700">
-                        <div >
+                        <div>
                             <Link className="flex items-center" to={`/profile/${post.author.username}`}>
                                 <img
                                     src={post.author.profilePicture?.secure_url || defaultIcon}
@@ -322,7 +316,7 @@ const PostModal = ({ postId, onClose }) => {
                     </div>
 
                     {/* Comments list */}
-                    <div className="flex-1 overflow-y-auto border-t border-gray-700 p-4 space-y-4 max-h-96">
+                    <div className="flex-1 overflow-y-auto border-t border-gray-700 p-4 space-y-4 max-h-[40%]">
                         {post.comments.map((comment) => (
                             <div key={comment._id} className="flex items-start space-x-3">
                                 <img src={comment.author.profilePicture?.secure_url || defaultIcon} alt="Commenter" className="w-8 h-8 rounded-full" />
@@ -358,7 +352,6 @@ const PostModal = ({ postId, onClose }) => {
                         ))}
                     </div>
 
-
                     {/* Action icons and comment area */}
                     <div className="p-4 border-t border-gray-700">
                         <div className="flex justify-between mb-3">
@@ -367,7 +360,6 @@ const PostModal = ({ postId, onClose }) => {
                                     onClick={handleToggleLike}
                                     className={`text-2xl cursor-pointer ${hasLiked ? "text-red-500" : "hover:text-gray-400"}`}
                                 />
-
                             </div>
                         </div>
 
@@ -386,7 +378,6 @@ const PostModal = ({ postId, onClose }) => {
                             >
                                 {isSubmitting ? "Publicando..." : "Publicar"}
                             </button>
-
                         </div>
                     </div>
                 </div>

@@ -80,35 +80,36 @@ const Profile = () => {
   const handleCreateConversation = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token || !userData) return;
-
+  
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/conversations`,
         { userId: userData._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Redirigir a la conversación recién creada
-      navigate(`/conversations/${response.data.conversation._id}`);
+  
+      // Redirigir a /conversations y pasar el ID de la conversación en el query
+      navigate(`/conversations?selectedConversationId=${response.data.conversation._id}`);
     } catch (error) {
       if (error.response && error.response.status === 400 && error.response.data.msg === "La conversación ya existe") {
         const existingConversationResponse = await axios.get(
           `${import.meta.env.VITE_API_URL}/conversations`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
+  
         const existingConversation = existingConversationResponse.data.find(
           (conversation) => conversation.users.some((user) => user._id === userData._id)
         );
-
+  
         if (existingConversation) {
-          navigate(`/conversations/${existingConversation._id}`);
+          navigate(`/conversations?selectedConversationId=${existingConversation._id}`);
         }
       } else {
         console.error("Error al crear la conversación:", error);
       }
     }
   };
+  
 
   const openPostModal = (postId, index) => {
     if (isMobile) {

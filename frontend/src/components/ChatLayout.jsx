@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom'; // Importamos useSearchParams para leer el query param
 import Conversations from '../views/Conversations';
 import ConversationDetail from '../views/ConversationDetail';
 
 const ChatLayout = () => {
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [searchParams] = useSearchParams(); // Usamos searchParams para acceder al parámetro de búsqueda
 
-  // Función para actualizar el estado de pantalla en tiempo real
+  useEffect(() => {
+    // Leer el parámetro 'selectedConversationId' y actualizar el estado
+    const initialConversationId = searchParams.get('selectedConversationId');
+    if (initialConversationId) {
+      setSelectedConversationId(initialConversationId);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 1024);
@@ -15,12 +24,10 @@ const ChatLayout = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Función para seleccionar una conversación
   const handleSelectConversation = (conversationId) => {
     setSelectedConversationId(conversationId);
   };
 
-  // Función para salir de una conversación (solo en móvil)
   const handleExitConversation = () => {
     setSelectedConversationId(null);
   };

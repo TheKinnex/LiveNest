@@ -421,7 +421,7 @@ export const updatePostContent = async (req, res) => {
   }
 };
 
-// @desc Eliminar un post (solo el autor puede eliminarlo)
+// @desc Eliminar un post (solo el autor o un administrador puede eliminarlo)
 // @route DELETE /posts/:postId
 export const deletePost = async (req, res) => {
   try {
@@ -430,14 +430,16 @@ export const deletePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ msg: "Post no encontrado" });
     }
+    const user = await User.findById(req.user.id);
 
-    // Verificar si el usuario es el autor del post
-    if (post.author.toString() !== req.user.id) {
+    // Verificar si el usuario es el autor del post o un administrador
+    if (post.author.toString() !== user._id && user.role !== "admin") {
       return res
         .status(403)
         .json({ msg: "No tienes permiso para eliminar este post" });
     }
 
+    // Marcar el post como eliminado (soft delete)
     post.isDelete = true;
     await post.save();
 
@@ -447,6 +449,8 @@ export const deletePost = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
+
 
 /* 
 

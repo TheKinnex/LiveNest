@@ -39,6 +39,8 @@ export const deleteComment = async (req, res) => {
   }
 };
 
+
+
 // @desc Editar un comentario
 // @route PATCH /comments/:commentId
 export const editComment = async (req, res) => {

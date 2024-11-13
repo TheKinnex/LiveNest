@@ -120,7 +120,7 @@ const Reports = () => {
                 {filteredReports.map((report) => (
                     <div key={report._id} className="bg-gray-800 text-white p-4 rounded-lg shadow-lg h-fit">
                         <h3 className="text-lg font-bold">Post Reportado</h3>
-                        <p className="text-sm">Contenido: {report.post.content}</p>
+                        <p className="text-sm truncate">Contenido: {report.post.content}</p>
                         <p className="text-sm">Autor: 
                             <Link to={`/profile/${report.post.author.username}`} className="text-blue-500 pl-2">
                                 {report.post.author.username}
