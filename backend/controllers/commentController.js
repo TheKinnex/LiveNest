@@ -1,5 +1,6 @@
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
+import User from "../models/User.js";
 
 // @desc Eliminar un comentario
 // @route DELETE /comments/:commentId
@@ -10,6 +11,7 @@ export const deleteComment = async (req, res) => {
     if (!comment) {
       return res.status(404).json({ msg: "Comentario no encontrado" });
     }
+    const user = await User.findById(req.user.id);
 
     const post = await Post.findById(comment.post._id); // Obtener el post relacionado
 
@@ -21,7 +23,7 @@ export const deleteComment = async (req, res) => {
     if (
       comment.author.toString() !== req.user.id && // Autor del comentario
       post.author.toString() !== req.user.id && // Dueño del post
-      req.user.role !== "admin" // Administrador
+      user.role !== "admin" // Administrador
     ) {
       return res
         .status(403)
