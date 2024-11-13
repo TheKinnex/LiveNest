@@ -209,8 +209,7 @@ const CreatePost = () => {
         </button>
       </header>
 
-      <div className='flex-1  h-full p-4 mt-10'>
-        {errorMessage && <p className="text-red-500 text-sm mb-4 text-center">{errorMessage}</p>}
+      <div className='flex-1  w-full h-full p-9 mt-10'>
         {successMessage && <p className="text-green-500 text-sm mb-4 text-center">{successMessage}</p>}
 
         {mediaFiles.length > 0 && (
@@ -258,12 +257,17 @@ const CreatePost = () => {
           </div>
         )}
 
-        <div className='flex flex-col mb-4'>
+        <div className='flex flex-col items-center w-full mb-4 '>
           <label
             htmlFor="media-upload"
-            className="mt-2 inline-flex items-center bg-purple-600 text-white px-3 py-1 rounded cursor-pointer hover:bg-purple-500"
+            className={`inline-flex items-center justify-center bg-purple-600 w-96 text-white px-4 py-2 rounded cursor-pointer hover:bg-purple-500`}
+            onClick={() => {
+              if (!isPremium) {
+                setErrorMessage('Debes ser premium para agregar videos.');
+              }
+            }}
           >
-            <FaPlus className='mr-1' /> Agregar Archivos
+            <FaPlus className="mr-2" /> Agregar Archivos
           </label>
           <input
             id="media-upload"
@@ -273,6 +277,7 @@ const CreatePost = () => {
             onChange={handleFileChange}
             className='hidden'
           />
+          {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
         </div>
 
         <div className='flex flex-col mb-4'>

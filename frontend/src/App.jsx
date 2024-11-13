@@ -24,6 +24,7 @@ import AdminSubscriptions from './views/admin/Subscriptions'
 import BlockedUsers from './views/admin/BlockedUsers';
 import AdminPosts from './views/admin/Posts';
 import Reports from './views/admin/Reports';
+import Search from './views/Search';
 
 const App = () => {
 
@@ -53,6 +54,7 @@ const App = () => {
           <Route path="posts/:profileUsername" element={<UserPosts />} />
           <Route path="subscriptions" element={<Subscriptions />} />
           <Route path="my-subscriptions" element={<MySubscriptions />} />
+          <Route path="search" element={<Search />} />
         </Route>
 
         <Route path="admin" element={<AdminLayout />}>

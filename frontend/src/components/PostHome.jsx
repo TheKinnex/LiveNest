@@ -30,6 +30,7 @@ const PostHome = ({ post }) => {
         setComments(post.comments.filter(comment => !comment.isDelete));
     }, [post.comments]);
 
+
     useEffect(() => {
         // Función para actualizar el estado de pantalla en tiempo real
         const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -141,7 +142,6 @@ const PostHome = ({ post }) => {
         }
     };
 
-
     const handleReportPost = async () => {
         const reason = prompt("Indica la razón para reportar el post (máx. 500 caracteres):");
         if (!reason || reason.length > 500) {
@@ -213,7 +213,7 @@ const PostHome = ({ post }) => {
                 {/* Opciones del menú contextual */}
                 {isMenuOpen && (
                     <div
-                        className="absolute right-6 md:right-28 bg-gray-700 text-sm rounded shadow-lg py-2 w-40 z-10"
+                        className="absolute right-6 lg:right-[32rem] bg-gray-700 text-sm rounded shadow-lg py-2 w-40 z-10"
                     >
                         {post.author._id === userId || userRole === "admin" ? (
                             <>
@@ -228,6 +228,9 @@ const PostHome = ({ post }) => {
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-600"
                                 >
                                     Eliminar
+                                </button>
+                                <button onClick={handleReportPost} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+                                    Denunciar
                                 </button>
                             </>
                         ) : (

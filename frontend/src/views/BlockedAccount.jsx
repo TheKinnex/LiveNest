@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 
 const BlockedAccount = () => {
+
+    
     return (
         <main className="bg-[#111827] min-h-screen flex flex-col justify-center items-center text-white p-4">
             <h1 className="text-2xl font-bold mb-4">Cuenta Bloqueada</h1>

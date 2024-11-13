@@ -26,7 +26,6 @@ const CreatePostModal = ({ isOpen, onClose, isPremium }) => {
 
     useEffect(() => {
         if (!isOpen) {
-            // Reset the form when modal is closed
             setContent('');
             setTags([]);
             setMediaFiles([]);
@@ -151,7 +150,7 @@ const CreatePostModal = ({ isOpen, onClose, isPremium }) => {
             setMediaFiles([]);
             setCurrentMediaIndex(0);
 
-            // Opcional: Cerrar el modal después de un breve retraso
+
             setTimeout(() => {
                 onClose();
             }, 2000);
@@ -193,10 +192,10 @@ const CreatePostModal = ({ isOpen, onClose, isPremium }) => {
                     {/* Sección de Subida y Previsualización */}
                     <div className="flex-1 flex flex-col items-center ">
                         {/* Área de Subida */}
-                        <div className="flex flex-col mb-4 w-96">
+                        <div className='flex flex-col mb-4 w-96'>
                             <label
                                 htmlFor="media-upload"
-                                className={`inline-flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-purple-500 ${!isPremium && 'opacity-50 cursor-not-allowed'}`}
+                                className={`inline-flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded cursor-pointer hover:bg-purple-500`}
                                 onClick={() => {
                                     if (!isPremium) {
                                         setErrorMessage('Debes ser premium para agregar videos.');
@@ -209,15 +208,10 @@ const CreatePostModal = ({ isOpen, onClose, isPremium }) => {
                                 id="media-upload"
                                 type="file"
                                 multiple
-                                accept={isPremium ? "image/jpeg,image/png,image/gif,video/mp4,video/mpeg" : "image/jpeg,image/png,image/gif"}
+                                accept="image/jpeg,image/png,image/gif,video/mp4,video/mpeg"
                                 onChange={handleFileChange}
-                                className="hidden"
+                                className='hidden'
                             />
-                            {!isPremium && (
-                                <p className="text-gray-400 text-sm mt-2">
-                                    Para subir videos, actualiza tu suscripción a Premium.
-                                </p>
-                            )}
                             {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
                         </div>
 

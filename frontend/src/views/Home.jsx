@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaSpinner } from 'react-icons/fa';
 import PostHome from '../components/PostHome';
 import Suggestions from '../components/Suggestions'; 
+import Loading from '../components/Loading';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -87,9 +88,7 @@ const Home = () => {
 
   if (loading && currentPage === 1) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <FaSpinner className="animate-spin text-4xl text-purple-600" />
-      </div>
+      <Loading/>
     );
   }
 

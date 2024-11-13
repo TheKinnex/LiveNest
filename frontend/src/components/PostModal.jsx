@@ -291,6 +291,9 @@ const PostModal = ({ postId, onClose }) => {
                                             <button onClick={handleDeletePost} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
                                                 Eliminar
                                             </button>
+                                            <button onClick={handleReportPost} className="block w-full text-left px-4 py-2 hover:bg-gray-700">
+                                                Denunciar
+                                            </button>
                                         </>
                                     ) : (
                                         <>

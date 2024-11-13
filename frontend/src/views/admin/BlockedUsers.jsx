@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Loading from '../../components/Loading';
 
 const BlockedUsers = () => {
     const [blockedUsers, setBlockedUsers] = useState([]);
@@ -46,7 +47,7 @@ const BlockedUsers = () => {
         }
     };
 
-    if (loading) return <div className="text-white">Cargando usuarios bloqueados...</div>;
+    if (loading) return <Loading/>;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (

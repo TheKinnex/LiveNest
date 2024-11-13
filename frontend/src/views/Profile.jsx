@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PostModal from '../components/PostModal.jsx';
 import { LuLayoutGrid } from "react-icons/lu";
-import { CiStreamOn } from "react-icons/ci";
 import { IoIosPhotos } from "react-icons/io";
 import { FaStar } from "react-icons/fa"; // Icono para la pelota amarilla
 import defaultIcon from '../assets/default-avatar.png'
+import Loading from '../components/Loading.jsx';
 
 const Profile = () => {
   const { profileUsername } = useParams();
@@ -135,10 +135,10 @@ const Profile = () => {
     navigate("/subscriptions");
   };
 
-  if (!userData) return <div className="text-white">Cargando perfil...</div>;
+  if (!userData) return <Loading/>;
 
   return (
-    <div className="bg-gray-900 min-h-screen flex flex-col items-center p-4 md:p-8 text-white">
+    <div className="bg-gray-900 min-h-screen flex flex-col items-center p-4 md:p-8 text-white ">
       {/* Header con foto de perfil, nombre de usuario y pelota amarilla si es premium */}
       <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-5 w-full max-w-3xl">
         <img
@@ -216,14 +216,10 @@ const Profile = () => {
           <LuLayoutGrid />
           <span className="ml-2">Publicaciones</span>
         </button>
-        <button className="flex items-center">
-          <CiStreamOn />
-          <span className="ml-2">Streams</span>
-        </button>
       </div>
 
       {/* Grid de publicaciones */}
-      <div className="grid grid-cols-3 gap-1 mt-6 w-full max-w-3xl">
+      <div className="grid grid-cols-3 gap-1 mt-6 w-full max-w-3xl lg:pb-11 pb-14">
         {userData.posts?.map((post, index) => (
           <div key={post._id} className="relative h-32 md:h-64 w-full cursor-pointer group" onClick={() => openPostModal(post._id, index)}>
             {post.media?.length > 1 && (

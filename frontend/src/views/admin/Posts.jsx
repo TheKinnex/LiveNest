@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Loading from '../../components/Loading';
 
 const Posts = () => {
     const [posts, setPosts] = useState([]);
@@ -81,7 +82,7 @@ const Posts = () => {
         fetchPosts();
     }, []);
 
-    if (loading) return <div className="text-white">Cargando posts...</div>;
+    if (loading) return <Loading/>;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (

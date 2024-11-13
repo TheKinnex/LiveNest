@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, FaSignOutAlt, FaTachometerAlt, FaUsers, FaUserSlash, FaFlag, FaRegFileAlt } from "react-icons/fa";
+import { FaHome, FaSearch, FaUser, FaEnvelope, FaPlus, FaStar, FaClipboardList, FaSignOutAlt, FaTachometerAlt, FaUsers, FaUserSlash, FaFlag, FaRegFileAlt, FaArrowLeft } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CreatePostModal from './CreatePostModal';
 import defaultIcon from '../assets/default-avatar.png'
+import LogoTipo from '../assets/Proyecto Nuevo.png'
 
 const Sidebar = () => {
     const location = useLocation();
@@ -87,9 +88,7 @@ const Sidebar = () => {
             {/* Sidebar para pantallas grandes */}
             <div className=" hidden lg:flex flex-col h-full w-full bg-[#1F2937] text-white p-4 sidebar">
                 <aside className="flex flex-col h-full">
-                    <div className="p-5">
-                        <h1 className="text-2xl font-bold">LiveNest</h1>
-                    </div>
+                <Link to={'/'}> <img src={LogoTipo} className='w-36' /> </Link>
                     <nav className="flex flex-col mt-10 space-y-5 flex-grow">
                         {role === 'admin' && (
                             <button
@@ -97,8 +96,8 @@ const Sidebar = () => {
                                 className="flex items-center px-4 py-2 rounded hover:bg-gray-700 transition-colors duration-200 text-left"
                                 aria-label="Dashboard"
                             >
-                                <FaTachometerAlt className="mr-3" />
-                                Dashboard
+                                {isAdminView ? <FaArrowLeft className="mr-3" /> : <FaTachometerAlt className="mr-3" />}
+                                {isAdminView ? 'Regresar' : 'Dashboard'}
                             </button>
                         )}
                         {isAdminView ? (
@@ -208,7 +207,7 @@ const Sidebar = () => {
             <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#1F2937] text-white flex justify-around items-center py-4 shadow-t z-50">
                 {role === 'admin' && (
                     <button onClick={toggleAdminView} className="flex flex-col items-center text-gray-400 hover:text-purple-500" aria-label="Dashboard">
-                        <FaTachometerAlt className="text-xl" />
+                        {isAdminView ? <FaArrowLeft className="text-xl" /> : <FaTachometerAlt className="text-xl" />}
                     </button>
                 )}
 

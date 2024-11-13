@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Loading from '../../components/Loading';
 
 const Reports = () => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [currentMediaIndex, setCurrentMediaIndex] = useState({}); // Estado para controlar el índice de cada reporte
+    const [showReviewed, setShowReviewed] = useState(false); // Estado para alternar entre revisados y no revisados
+    const [currentMediaIndex, setCurrentMediaIndex] = useState({});
     const touchStartRef = useRef(null);
 
     const fetchReports = async () => {
@@ -15,7 +17,7 @@ const Reports = () => {
             const response = await axios.get(`${import.meta.env.VITE_API_URL}/admin/reports`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setReports(response.data.filter(report => !report.isDelete)); // Exclude soft-deleted reports
+            setReports(response.data.filter(report => !report.isDelete));
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -97,15 +99,26 @@ const Reports = () => {
         fetchReports();
     }, []);
 
-    if (loading) return <div className="text-white">Cargando reportes...</div>;
+    const filteredReports = reports.filter(report => report.isReviewed === showReviewed);
+
+    if (loading) return <Loading />;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (
         <div className="p-4 md:p-6 lg:p-8 mb-14">
             <h2 className="text-2xl font-semibold text-white mb-4">Reportes</h2>
+
+            {/* Botón para alternar entre reportes revisados y no revisados */}
+            <button
+                onClick={() => setShowReviewed(!showReviewed)}
+                className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+            >
+                {showReviewed ? 'Ver Reportes No Revisados' : 'Ver Reportes Revisados'}
+            </button>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {reports.map((report) => (
-                    <div key={report._id} className="bg-gray-800 text-white p-4 rounded-lg shadow-lg">
+                {filteredReports.map((report) => (
+                    <div key={report._id} className="bg-gray-800 text-white p-4 rounded-lg shadow-lg h-fit">
                         <h3 className="text-lg font-bold">Post Reportado</h3>
                         <p className="text-sm">Contenido: {report.post.content}</p>
                         <p className="text-sm">Autor: 
@@ -122,14 +135,14 @@ const Reports = () => {
                         <p className="text-sm">Revisado: {report.isReviewed ? 'Sí' : 'No'}</p>
 
                         {/* Carrusel de multimedia del post reportado */}
-                        <div className="relative flex justify-center items-center mt-2">
+                        <div className="relative flex justify-center items-center mt-2 h-80">
                             {report.post.media && report.post.media.length > 0 && (
                                 <>
                                     {report.post.media[currentMediaIndex[report._id] || 0].type === 'image' ? (
                                         <img
                                             src={report.post.media[currentMediaIndex[report._id] || 0].secure_url}
                                             alt="Post media"
-                                            className="w-full h-64 object-cover rounded"
+                                            className="w-full h-full object-cover rounded"
                                             onTouchStart={onTouchStart}
                                             onTouchEnd={(e) => onTouchEnd(e, report._id)}
                                         />
@@ -137,7 +150,7 @@ const Reports = () => {
                                         <video
                                             src={report.post.media[currentMediaIndex[report._id] || 0].secure_url}
                                             controls
-                                            className="w-full h-64 object-cover rounded"
+                                            className="w-full h-full object-cover rounded"
                                             onTouchStart={onTouchStart}
                                             onTouchEnd={(e) => onTouchEnd(e, report._id)}
                                         />

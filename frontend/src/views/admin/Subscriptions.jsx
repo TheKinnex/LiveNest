@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Loading from '../../components/Loading';
 
 const Subscriptions = () => {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -40,7 +41,7 @@ const Subscriptions = () => {
         setFilteredSubscriptions(filtered);
     };
 
-    if (loading) return <div className="text-white">Cargando suscripciones...</div>;
+    if (loading) return <Loading/>;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (

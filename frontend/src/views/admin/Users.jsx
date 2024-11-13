@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Loading from '../../components/Loading';
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -71,7 +72,7 @@ const Users = () => {
             const action = isBlocked ? 'unblock' : 'block';
             
             await axios.patch(
-                `${import.meta.env.VITE_API_URL}/admin/users/${userId}/block`,
+                `${import.meta.env.VITE_API_URL}/admin/users/${userId}/${action}`,
                 { action },
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -85,7 +86,7 @@ const Users = () => {
         }
     };
     
-    if (loading) return <div className="text-white">Cargando usuarios...</div>;
+    if (loading) return <Loading/>;
     if (error) return <div className="text-red-500">{error}</div>;
 
     return (

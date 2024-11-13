@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../components/Loading';
 
 const Subscriptions = () => {
   const [plans, setPlans] = useState([]);
@@ -65,7 +66,7 @@ const Subscriptions = () => {
     }
   };
 
-  if (loading) return <div className="text-white">Cargando planes de suscripción...</div>;
+  if (loading) return <Loading/>;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (

@@ -102,7 +102,7 @@ export const softBlockAndDelete = async (req, res) => {
       user.isDelete = false;
     } else if (action === "delete") {
       user.isBlocked = false;
-      user.isDelete = false;
+      user.isDelete = true;
     } else {
       return res.status(400).json({ msg: "Acción no válida" });
     }
