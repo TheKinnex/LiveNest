@@ -45,7 +45,7 @@ const Profile = () => {
     }
   };
   
-  // Al obtener el perfil del usuario, configuramos correctamente `isFollowing`
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!token) {

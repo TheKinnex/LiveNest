@@ -15,66 +15,59 @@ const Home = () => {
   const [isFetching, setIsFetching] = useState(false);
   const navigate = useNavigate();
 
-  const POSTS_PER_PAGE = 10;
+  const POSTS_PER_PAGE = 1;
 
   const fetchPosts = async (page) => {
-    if (isFetching) return; // Evitar múltiples solicitudes simultáneas
+    if (isFetching || !hasMore) return; // Evitar múltiples solicitudes simultáneas y verificar si hay más posts
     setIsFetching(true);
 
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (!token) {
-        navigate('/login'); // Redirigir si no hay token
+        navigate('/login');
         return;
       }
 
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/posts/feed`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            page,
-            limit: POSTS_PER_PAGE,
-          },
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page, limit: POSTS_PER_PAGE },
         }
       );
 
       const fetchedPosts = response.data.posts;
-
-      // Añadir solo publicaciones nuevas al estado
       setPosts((prevPosts) => [
         ...prevPosts,
         ...fetchedPosts.filter((post) => !prevPosts.some((p) => p._id === post._id)),
       ]);
 
-      setHasMore(fetchedPosts.length === POSTS_PER_PAGE);
+      setHasMore(page < response.data.totalPages);
       setError('');
     } catch (err) {
       console.error('Error al cargar las publicaciones:', err);
       setError('Hubo un error al cargar las publicaciones. Por favor, inténtalo de nuevo.');
     } finally {
       setLoading(false);
-      setIsFetching(false); // Termina la solicitud
+      setIsFetching(false);
     }
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token) {
-      navigate('/login'); // Redirigir a login si no hay token
-      return;
+    if (currentPage === 1) {
+      setPosts([]); // Limpiar las publicaciones al cargar la primera página
     }
     fetchPosts(currentPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   useEffect(() => {
     const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      const offsetHeight = document.documentElement.offsetHeight || document.body.offsetHeight;
+      const innerHeight = window.innerHeight;
+
       if (
-        window.inneHreight + document.documentElement.scrollTop + 100 >=
-        document.documentElement.offsetHeight &&
+        innerHeight + scrollTop >= offsetHeight - 100 &&
         !isFetching &&
         hasMore
       ) {
@@ -87,29 +80,26 @@ const Home = () => {
   }, [isFetching, hasMore]);
 
   if (loading && currentPage === 1) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   return (
-    <main className="bg-[#111827]  w-full h-fit p-4 flex justify-center">
-      <div className="flex w-full h-full bg-[#111827]   max-w-7xl gap-8">
-        {/* Contenedor de las publicaciones */}
-        <div className="flex-1 max-w-xl h-full bg-[#111827] pb-10  w-full mx-auto">
+    <main className="bg-[#111827] w-full h-fit p-4 flex justify-center">
+      <div className="flex w-full h-full bg-[#111827] max-w-7xl gap-8">
+        <div className="flex-1 max-w-xl h-full bg-[#111827] pb-10 w-full mx-auto">
           {error && (
             <div className="bg-red-500 text-white p-3 rounded mb-4 text-center">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 bg-[#111827]  text-white gap-6">
+          <div className="grid grid-cols-1 bg-[#111827] text-white gap-6">
             {posts.map((post) => (
               <PostHome key={post._id} post={post} />
             ))}
           </div>
 
-          {loading && currentPage > 1 && (
+          {isFetching && currentPage > 1 && (
             <div className="flex justify-center items-center mt-4">
               <FaSpinner className="animate-spin text-2xl text-purple-600" />
             </div>
@@ -122,7 +112,6 @@ const Home = () => {
           )}
         </div>
 
-        {/* Barra lateral de sugerencias para escritorio */}
         <div className="hidden lg:block lg:w-[26%] ">
           <Suggestions />
         </div>

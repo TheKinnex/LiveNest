@@ -11,20 +11,22 @@ const Layout = () => {
     const showSidebar = !hideSidebarRoutes.includes(location.pathname);
 
     return (
-        <div className="flex min-h-screen lg:h-screen overflow-hidden">
+        <div className="flex min-h-screen">
             {/* Header solo en dispositivos móviles */}
             {showSidebar && <HeaderMobile />}
 
             {/* Sidebar fijo solo en pantallas grandes */}
             {showSidebar && (
-                <div className="hidden lg:flex w-64 h-full bg-[#1F2937]">
+                <div className="hidden lg:flex fixed top-0 left-0 w-64 h-full bg-[#1F2937] z-50">
                     <Sidebar />
                 </div>
             )}
 
             {/* Contenido principal */}
-            <div className="flex-1 flex flex-col bg-[#111827] min-h-screen overflow-y-auto pt-12 lg:pt-0">
-                <Outlet />
+            <div className={`flex-1 flex flex-col bg-[#111827] min-h-screen pt-12 lg:pt-0 lg:ml-64`}>
+                <div className="flex-1 overflow-y-auto">
+                    <Outlet />
+                </div>
 
                 {/* Barra de navegación inferior en móviles */}
                 {showSidebar && (
@@ -38,3 +40,4 @@ const Layout = () => {
 };
 
 export default Layout;
+    

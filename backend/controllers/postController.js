@@ -114,8 +114,8 @@ export const getFeed = async (req, res) => {
     const followedUserIds = user.following.map((follow) => follow._id);
 
     // Definir cuántos posts queremos en el feed
-    const POSTS_LIMIT = 20;
-    const PAGE = parseInt(req.query.page) || 1; // Paginación
+    const POSTS_LIMIT = parseInt(req.query.limit) || 1;
+    const PAGE = parseInt(req.query.page) || 1;
     const SKIP = (PAGE - 1) * POSTS_LIMIT;
 
     // 1. Obtener publicaciones de usuarios seguidos
@@ -132,7 +132,7 @@ export const getFeed = async (req, res) => {
         match: { isDelete: false },
         populate: { path: "author", select: "username profilePicture" },
       })
-      .lean(); // Usar lean para mejorar el rendimiento
+      .lean();
 
     // 2. Obtener recomendaciones basadas en tags
     const userPosts = await Post.find({ author: userId, isDelete: false }).select("tags").lean();
@@ -143,10 +143,11 @@ export const getFeed = async (req, res) => {
     if (userTags.length > 0) {
       recommendedPosts = await Post.find({
         tags: { $in: userTags },
-        author: { $nin: [...followedUserIds, userId] }, // Excluir posts del propio usuario y de seguidos
+        author: { $nin: [...followedUserIds, userId] },
         isDelete: false,
       })
         .sort({ createdAt: -1 })
+        .skip(SKIP)
         .limit(POSTS_LIMIT)
         .populate("author", "username profilePicture")
         .populate({
@@ -157,12 +158,34 @@ export const getFeed = async (req, res) => {
         .lean();
     }
 
-    // 3. Si el usuario no sigue a nadie, recomendar publicaciones populares
+    // 3. Si no hay suficientes recomendaciones, obtener publicaciones adicionales de otros usuarios no seguidos
+    const additionalPostsLimit = POSTS_LIMIT - recommendedPosts.length;
+    let additionalPosts = [];
+
+    if (additionalPostsLimit > 0) {
+      additionalPosts = await Post.find({
+        author: { $nin: [...followedUserIds, userId] },
+        isDelete: false,
+      })
+        .sort({ createdAt: -1 })
+        .skip(SKIP)
+        .limit(additionalPostsLimit)
+        .populate("author", "username profilePicture")
+        .populate({
+          path: "comments",
+          match: { isDelete: false },
+          populate: { path: "author", select: "username profilePicture" },
+        })
+        .lean();
+    }
+
+    // 4. Obtener publicaciones populares si el usuario no sigue a nadie
     if (followedUserIds.length === 0) {
       recommendedPosts = await Post.find({
         isDelete: false,
       })
-        .sort({ createdAt: -1 }) // Puedes cambiar esto por otro criterio de popularidad
+        .sort({ createdAt: -1 })
+        .skip(SKIP)
         .limit(POSTS_LIMIT)
         .populate("author", "username profilePicture")
         .populate({
@@ -173,17 +196,9 @@ export const getFeed = async (req, res) => {
         .lean();
     }
 
-    // 4. Combinar publicaciones seguidas y recomendaciones
+    // 5. Combinar publicaciones seguidas, recomendaciones y adicionales
     const followedPosts = await followedPostsPromise;
-
-    let feedPosts = [...followedPosts];
-
-    if (recommendedPosts.length > 0) {
-      feedPosts = [...feedPosts, ...recommendedPosts];
-    }
-
-    // 5. Ordenar las publicaciones combinadas por relevancia (puedes ajustar esto)
-    feedPosts = feedPosts.sort((a, b) => b.createdAt - a.createdAt);
+    let feedPosts = [...followedPosts, ...recommendedPosts, ...additionalPosts];
 
     // 6. Limitar el feed al POSTS_LIMIT
     feedPosts = feedPosts.slice(0, POSTS_LIMIT);
@@ -193,14 +208,13 @@ export const getFeed = async (req, res) => {
       $or: [
         { author: { $in: followedUserIds } },
         { tags: { $in: userTags }, author: { $nin: [...followedUserIds, userId] } },
+        { author: { $nin: [...followedUserIds, userId] } },
       ],
       isDelete: false,
     });
 
-    // Calcular el número total de páginas
     const totalPages = Math.ceil(totalPosts / POSTS_LIMIT);
 
-    // 8. Enviar las publicaciones y datos de paginación
     res.json({ 
       msg: "Feed de publicaciones", 
       posts: feedPosts,
@@ -213,7 +227,6 @@ export const getFeed = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
-
 
 
 // @desc Obtener un Post
@@ -303,11 +316,6 @@ export const toggleLikePost = async (req, res) => {
   }
 };
 
-/* 
-
-commentPost deberia ser parte de los controladores de comentarios
-
-*/
 
 // @desc Comentar en un post
 // @route POST /posts/:postId/comment
@@ -449,14 +457,6 @@ export const deletePost = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
-
-
-
-/* 
-
-El usuario deberia poder reportar varias veces un mismo post mientras la razon cambie
-
-*/
 
 // @desc Reportar un post
 // @route POST /posts/:postId/report
