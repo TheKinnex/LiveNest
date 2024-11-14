@@ -6,7 +6,7 @@ import ConversationDetail from '../views/ConversationDetail';
 const ChatLayout = () => {
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-  const [searchParams] = useSearchParams(); // Usamos searchParams para acceder al parámetro de búsqueda
+  const [searchParams] = useSearchParams(); // searchParams para acceder al parámetro de búsqueda
 
   useEffect(() => {
     // Leer el parámetro 'selectedConversationId' y actualizar el estado

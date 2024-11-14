@@ -44,7 +44,7 @@ const App = () => {
         {/* Rutas con Layout */}
         <Route element={<Layout />}>
 
-          {/* Rutas Hijas Relativas */}
+          {/* Rutas Hijas */}
           <Route index element={<Home />} />
           <Route path="conversations" element={<ChatLayout />} />
           <Route path="create-post" element={<CreatePost />} />

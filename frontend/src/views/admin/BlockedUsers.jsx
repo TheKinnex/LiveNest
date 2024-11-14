@@ -32,15 +32,16 @@ const BlockedUsers = () => {
         try {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const action = isBlocked ? 'unblock' : 'block';
-
+            
             await axios.patch(
-                `${import.meta.env.VITE_API_URL}/admin/users/${userId}/block`,
+                `${import.meta.env.VITE_API_URL}/admin/users/${userId}/${action}`,
                 { action },
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
             );
-            fetchBlockedUsers()
+    
+            fetchBlockedUsers();
         } catch (err) {
             console.error("Error al bloquear/desbloquear usuario:", err);
             setError('Error al actualizar el estado del usuario.');

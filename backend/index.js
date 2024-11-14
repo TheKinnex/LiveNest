@@ -1,4 +1,3 @@
-// server.js o app.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -29,7 +28,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Configura correctamente los orígenes permitidos en producción
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -191,7 +190,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Manejar verificar el estado en línea
+  /* Manejar verificar el estado en línea
   socket.on(EVENTS.CHECK_ONLINE_STATUS, async (userIdToCheck) => {
     try {
       const isOnline = io.sockets.adapter.rooms.has(userIdToCheck);
@@ -200,7 +199,7 @@ io.on("connection", (socket) => {
       console.error("Error al verificar el estado en línea:", err.message);
       socket.emit(EVENTS.ERROR, "Error al verificar el estado en línea.");
     }
-  });
+  }); */
 
   // Manejar eventos de nuevas conversaciones en tiempo real
   socket.on(EVENTS.NEW_CONVERSATION, (newConversation) => {

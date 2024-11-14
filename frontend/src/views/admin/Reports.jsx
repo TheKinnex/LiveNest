@@ -111,7 +111,7 @@ const Reports = () => {
             {/* Botón para alternar entre reportes revisados y no revisados */}
             <button
                 onClick={() => setShowReviewed(!showReviewed)}
-                className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+                className="bg-[#A855F7] text-white px-4 py-2 rounded mb-4"
             >
                 {showReviewed ? 'Ver Reportes No Revisados' : 'Ver Reportes Revisados'}
             </button>
