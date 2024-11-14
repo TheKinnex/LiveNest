@@ -19,24 +19,52 @@ const Profile = () => {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
 
+  const handleToggleFollow = async () => {
+    if (!token) return;
+  
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/profile/${userData._id}/toggleFollow`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      // Aquí, actualizamos la lista de seguidores en `userData` y recalculamos `isFollowing`.
+      const updatedFollowers = response.data.following
+        ? [...userData.followers, { _id: userId }]
+        : userData.followers.filter((follower) => follower._id !== userId);
+  
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        followers: updatedFollowers,
+      }));
+      
+      setIsFollowing(response.data.following);
+    } catch (error) {
+      console.error("Error al alternar el estado de seguimiento:", error);
+    }
+  };
+  
+  // Al obtener el perfil del usuario, configuramos correctamente `isFollowing`
   useEffect(() => {
     const fetchUserProfile = async () => {
-
       if (!token) {
         navigate('/login'); // Redirigir a login si no hay token
         return;
       }
-
+  
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/profile/${profileUsername}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
+  
         if (response.data) {
           setUserData(response.data);
           setIsOwner(response.data._id === userId);
-          setIsFollowing(response.data.followers.some(follower => follower._id === userId));
+          
+          // Comprobamos si el usuario actual está en la lista de seguidores
+          setIsFollowing(response.data.followers.some(follower => follower === userId));
         } else {
           console.error("Usuario no encontrado");
         }
@@ -44,9 +72,11 @@ const Profile = () => {
         console.error("Error al obtener el perfil del usuario:", error);
       }
     };
-
+  
     fetchUserProfile();
   }, [navigate, profileUsername, token, userId]);
+  
+  
 
   useEffect(() => {
     // Manejar cambios en el tamaño de la ventana para actualizar isMobile
@@ -60,22 +90,7 @@ const Profile = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleToggleFollow = async () => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/profile/${userData._id}/toggleFollow`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setIsFollowing(response.data.following);
-    } catch (error) {
-      console.error("Error al alternar el estado de seguimiento:", error);
-    }
-  };
+  
 
   const handleCreateConversation = async () => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');

@@ -84,7 +84,7 @@ const Suggestions = () => {
   }
 
   return (
-    <div className="mt-6 p-4  text-white rounded-md">
+    <div className="mt-6 text-white rounded-md">
       <h2 className="text-sm text-gray-500 font-semibold mb-4">Sugerencias para ti</h2>
       {suggestedUsers.length === 0 ? (
         <p className="text-gray-400">No hay sugerencias disponibles.</p>
@@ -98,13 +98,13 @@ const Suggestions = () => {
                   alt={user.username}
                   className="w-10 h-10 rounded-full"
                 />
-                <span className="">{user.username}</span>
+                <span className=" text-xs">{user.username}</span>
               </Link>
               <button
                 onClick={() => handleToggleFollow(user._id)}
-                className={`px-3 py-1 rounded-md text-sm ${
+                className={`px-2 py-1 rounded-md text-xs ${
                   user.isFollowing
-                    ? 'bg-gray-700  hover:bg-gray-600'
+                    ? 'bg-gray-700  hover:bg-gray-600 '
                     : 'bg-purple-600  hover:bg-purple-500'
                 }`}
               >

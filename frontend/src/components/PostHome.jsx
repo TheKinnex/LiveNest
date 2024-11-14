@@ -23,8 +23,6 @@ const PostHome = ({ post }) => {
     const [isEditing, setIsEditing] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
-    const menuRef = useRef(null); 
-    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
     const touchStartRef = useRef(null);
 
     useEffect(() => {
@@ -40,28 +38,8 @@ const PostHome = ({ post }) => {
         // Limpieza del event listener al desmontar el componente
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
     
-    
-
-    useEffect(() => {
-        // Actualiza el estado de `isDesktop` cuando cambia el tamaño de la pantalla
-        const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const handleToggleMenu = (event) => {
-        setIsMenuOpen((prev) => !prev);
-        
-        if (!isDesktop) return;
-
-        // Calcula la posición del menú en pantalla de escritorio
-        const buttonRect = event.target.getBoundingClientRect();
-        setMenuPosition({
-            top: buttonRect.bottom + window.scrollY, // Ajusta `top` según la posición del botón
-            left: buttonRect.left + window.scrollX - 160, // Centra el menú según el ancho
-        });
-    };
 
     const handleToggleLike = async () => {
         if (!token) {
@@ -124,7 +102,7 @@ const PostHome = ({ post }) => {
     const handleDeleteComment = async (commentId) => {
         const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este comentario?");
         if (!confirmDelete) return;
-    
+
         try {
             await axios.delete(`${import.meta.env.VITE_API_URL}/comments/${commentId}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -134,7 +112,7 @@ const PostHome = ({ post }) => {
             console.error("Error al eliminar el comentario:", error);
         }
     };
-    
+
 
     const handleEditComment = async (commentId, newContent) => {
         try {
@@ -157,10 +135,10 @@ const PostHome = ({ post }) => {
             setErrorMsg("Debes estar autenticado para eliminar esta publicación.");
             return;
         }
-        
+
         const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar esta publicación?");
         if (!confirmDelete) return;
-    
+
         try {
             await axios.delete(`${import.meta.env.VITE_API_URL}/posts/${post._id}`, {
                 headers: { Authorization: `Bearer ${token}` },
@@ -172,7 +150,7 @@ const PostHome = ({ post }) => {
             setErrorMsg("No se pudo eliminar la publicación. Inténtalo de nuevo.");
         }
     };
-    
+
 
     const handleReportPost = async () => {
         const reason = prompt("Indica la razón para reportar el post (máx. 500 caracteres):");
@@ -195,7 +173,7 @@ const PostHome = ({ post }) => {
 
     const openModal = () => setIsModalOpen(true);
     const closeModal = () => setIsModalOpen(false);
-    
+
 
     const handleSwipe = (direction) => {
         if (direction === "left") {
@@ -222,6 +200,8 @@ const PostHome = ({ post }) => {
         return (updated - created) > 1000; // Más de 1 segundo de diferencia
     };
 
+    const handleToggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
 
     return (
         <div className="rounded-lg overflow-hidden bg-gray-800">
@@ -242,56 +222,48 @@ const PostHome = ({ post }) => {
                         <FaEllipsisV />
                     </button>
                 </div>
-                {/* Opciones del menú contextual */}
-                {isMenuOpen && (
-                <div
-                    ref={menuRef}
-                    style={{
-                        position: isDesktop ? 'absolute' : 'absolute',
-                        top: isDesktop ? menuPosition.top : 'auto',
-                        left: isDesktop ? menuPosition.left : 'auto',
-                        right: isDesktop ? 'auto' : 0, 
-                        zIndex: 10,
-                    }}
-                    className="mt-2 bg-gray-700 text-sm rounded shadow-lg py-2 w-40 max-w-xs"
-                >
-                    {post.author._id === userId || userRole === "admin" ? (
-                        <>
-                            <Link
-                                to={`/posts/${post._id}/edit`}
+                <div className="relative">
+                    {isMenuOpen && (
+                        <div className="absolute right-0 top-0 bg-gray-700 text-sm rounded shadow-lg py-2 w-40 z-10">
+                            {post.author._id === userId || userRole === "admin" ? (
+                                <>
+                                    <Link
+                                        to={`/posts/${post._id}/edit`}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-600"
+                                    >
+                                        Editar Post
+                                    </Link>
+                                    <button
+                                        onClick={handleDeletePost}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-600"
+                                    >
+                                        Eliminar
+                                    </button>
+                                    <button
+                                        onClick={handleReportPost}
+                                        className="block w-full text-left px-4 py-2 hover:bg-gray-700"
+                                    >
+                                        Denunciar
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={handleReportPost}
+                                    className="block w-full text-left px-4 py-2 hover:bg-gray-600"
+                                >
+                                    Denunciar
+                                </button>
+                            )}
+                            <button
+                                onClick={handleToggleMenu}
                                 className="block w-full text-left px-4 py-2 hover:bg-gray-600"
                             >
-                                Editar Post
-                            </Link>
-                            <button
-                                onClick={handleDeletePost}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-600"
-                            >
-                                Eliminar
+                                Cancelar
                             </button>
-                            <button
-                                onClick={handleReportPost}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-700"
-                            >
-                                Denunciar
-                            </button>
-                        </>
-                    ) : (
-                        <button
-                            onClick={handleReportPost}
-                            className="block w-full text-left px-4 py-2 hover:bg-gray-600"
-                        >
-                            Denunciar
-                        </button>
+                        </div>
                     )}
-                    <button
-                        onClick={handleToggleMenu}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-600"
-                    >
-                        Cancelar
-                    </button>
                 </div>
-            )}
+            
 
 
             </div>
