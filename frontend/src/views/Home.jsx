@@ -15,7 +15,7 @@ const Home = () => {
   const [isFetching, setIsFetching] = useState(false);
   const navigate = useNavigate();
 
-  const POSTS_PER_PAGE = 1;
+  const POSTS_PER_PAGE = 2;
 
   const fetchPosts = async (page) => {
     if (isFetching || !hasMore) return; // Evitar múltiples solicitudes simultáneas y verificar si hay más posts

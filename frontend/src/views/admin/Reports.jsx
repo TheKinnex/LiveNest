@@ -26,21 +26,29 @@ const Reports = () => {
         }
     };
 
-    const handleDeletePost = async (postId) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar este post?")) {
+    const handleDeletePost = async (postId, reportId) => {
+        if (window.confirm("¿Estás seguro de que deseas eliminar este post? Esto también eliminará los reportes asociados.")) {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                // Eliminar el post
                 await axios.delete(`${import.meta.env.VITE_API_URL}/admin/posts/${postId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
+    
+                // Eliminar reportes asociados al post
+                await axios.delete(`${import.meta.env.VITE_API_URL}/admin/reports/${reportId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+    
                 fetchReports();
-                alert("Post eliminado exitosamente.");
+                alert("Post y reportes asociados eliminados exitosamente.");
             } catch (err) {
-                console.error("Error al eliminar el post:", err);
-                setError("Error al eliminar el post.");
+                console.error("Error al eliminar el post y los reportes asociados:", err);
+                setError("Error al eliminar el post y los reportes asociados.");
             }
         }
     };
+    
 
     const handleDeleteReport = async (reportId) => {
         if (window.confirm("¿Estás seguro de que deseas eliminar este reporte?")) {
@@ -179,7 +187,7 @@ const Reports = () => {
 
                         <div className="mt-4 flex flex-col gap-2">
                             <button
-                                onClick={() => handleDeletePost(report.post._id)}
+                                onClick={() => handleDeletePost(report.post._id, report._id)}
                                 className="bg-red-500 text-white py-2 rounded hover:bg-red-600 w-full"
                             >
                                 Eliminar Post

@@ -228,11 +228,6 @@ export const deletePost = async (req, res) => {
     post.updatedAt = Date.now();
     await post.save();
 
-    /* 
-    
-    Aqui seria bueno que se devolviera el post que al que se le aplico la accion
-    
-    */
     res.json({ msg: 'Post marcado como eliminado exitosamente' });
   } catch (err) {
     console.error(err.message);

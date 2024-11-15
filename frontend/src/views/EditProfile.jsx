@@ -18,7 +18,7 @@ const EditProfile = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [currentProfilePicture, setCurrentProfilePicture] = useState(defaultIcon);
 
-  // Expresión regular para validar la contraseña (igual a la del registro)
+  // Expresión regular para validar la contraseña
   const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*(),.]).{8,}$/;
 
   useEffect(() => {

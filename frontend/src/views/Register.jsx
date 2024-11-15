@@ -76,7 +76,7 @@ const Register = () => {
   };
 
   return (
-    <main className=' bg-[#111827] w-full min-h-screen text-white'>
+    <main className=' bg-[#111827] w-full min-h-screen text-white flex justify-center items-center p-4'>
       <div className=' flex flex-col justify-center items-center h-full'>
         <div className='w-80 flex flex-col justify-center gap-y-5'>
           <h2 className=' text-xl font-semibold text-left'>LiveNest</h2>
@@ -135,7 +135,9 @@ const Register = () => {
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
 
-          <span className='flex gap-2 text-xs text-blue-600' >
+          <hr className='border-t border-gray-700 my-4' />
+
+          <span className='flex justify-center gap-2 text-xs text-blue-600' >
             Ya tienes una cuenta? <Link to={'/login'} className=' text-purple-600'>Iniciar Sesión</Link>
           </span>
         </form>

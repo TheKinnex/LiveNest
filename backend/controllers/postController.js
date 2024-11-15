@@ -396,24 +396,17 @@ export const updatePostContent = async (req, res) => {
 
     // Buscar el post por su ID
     const post = await Post.findById(req.params.postId);
-
+    
     // Verificar si el post existe
     if (!post) {
       return res.status(404).json({ msg: "Post no encontrado" });
     }
 
-    // Verificar si el post está eliminado
+    // Verificar si el post está marcado como eliminado
     if (post.isDelete) {
       return res
         .status(403)
         .json({ msg: "No puedes editar un post eliminado" });
-    }
-
-    // Verificar si el usuario es el autor del post
-    if (post.author.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ msg: "No tienes permiso para actualizar este post" });
     }
 
     // Actualizar solo el contenido y las tags
@@ -428,6 +421,7 @@ export const updatePostContent = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 // @desc Eliminar un post (solo el autor o un administrador puede eliminarlo)
 // @route DELETE /posts/:postId
