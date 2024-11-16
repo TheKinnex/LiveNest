@@ -432,10 +432,11 @@ export const deletePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ msg: "Post no encontrado" });
     }
+
     const user = await User.findById(req.user.id);
 
     // Verificar si el usuario es el autor del post o un administrador
-    if (post.author.toString() !== user._id && user.role !== "admin") {
+    if (post.author.toString() !== user._id.toString() && user.role !== "admin") {
       return res
         .status(403)
         .json({ msg: "No tienes permiso para eliminar este post" });
@@ -451,6 +452,7 @@ export const deletePost = async (req, res) => {
     res.status(500).send("Error en el servidor");
   }
 };
+
 
 // @desc Reportar un post
 // @route POST /posts/:postId/report

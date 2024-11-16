@@ -21,10 +21,7 @@ export const postOwnershipMiddleware = async (req, res, next) => {
     console.log("User Role:", user.role);
 
     // Verificar si el usuario es el autor del post o un administrador
-    if (
-      post.author.toString() !== user._id.toString() &&
-      user.role !== "admin"
-    ) {
+    if (post.author.toString() !== user._id.toString() && user.role !== "admin") {
       return res
         .status(403)
         .json({ msg: "No tienes permiso para modificar este post" });
