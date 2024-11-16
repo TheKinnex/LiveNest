@@ -145,11 +145,11 @@ const EditPost = () => {
                 </button>
             </header>
 
-            <div className="flex-1 w-full h-full p-9 mt-16">
+            <div className="flex-1  w-full h-full p-9 mt-10">
                 {successMessage && <p className="text-green-500 text-sm mb-4 text-center">{successMessage}</p>}
                 {errorMessage && <p className="text-red-500 text-sm mb-4 text-center">{errorMessage}</p>}
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-48">
+                <form onSubmit={handleSubmit} className="flex flex-col mb-4 lg:px-48">
                     <div className="flex flex-col">
                         <label htmlFor="content" className="text-sm text-white mb-1">Descripción</label>
                         <textarea
