@@ -187,7 +187,7 @@ const Sidebar = () => {
                                     aria-label="Perfil"
                                 >
                                     {profilePicture ? (
-                                        <img src={profilePicture} alt="Perfil" className="h-8 w-h-8 rounded-full mr-3 object-cover" />
+                                        <img src={profilePicture} alt="Perfil" className="h-8 w-8 rounded-full mr-3 object-cover" />
                                     ) : (
                                         <FaUser className="mr-3" />
                                     )}

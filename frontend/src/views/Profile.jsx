@@ -160,7 +160,7 @@ const Profile = () => {
         <img
           src={userData.profilePicture?.secure_url || defaultIcon}
           alt="Profile"
-          className="w-20 h-20 md:w-24 md:h-24 bg-gray-600 rounded-full border-4 border-purple-500"
+          className="w-20 h-20 lg:w-24 lg:h-24 object-cover bg-gray-600 rounded-full border-4 border-purple-500"
         />
         <div className="text-center md:text-left mt-4 md:mt-0 relative">
           <h1 className="text-xl md:text-2xl flex items-center justify-center md:justify-start">
