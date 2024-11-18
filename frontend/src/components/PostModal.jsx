@@ -266,7 +266,7 @@ const PostModal = ({ postId, onClose }) => {
                                 <img
                                     src={post.author.profilePicture?.secure_url || defaultIcon}
                                     alt="Profile"
-                                    className="w-10 h-10 rounded-full mr-3"
+                                    className="w-10 h-10 object-cover rounded-full mr-3"
                                 />
                                 <span className="font-semibold">{post.author.username}</span>
                             </Link>

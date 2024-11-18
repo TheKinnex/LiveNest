@@ -61,7 +61,7 @@ const Search = () => {
                                 <img
                                     src={user.profilePicture?.secure_url || defaultIcon}
                                     alt={`${user.username} profile`}
-                                    className="w-10 h-10 rounded-full mr-3"
+                                    className="w-10 h-10 object-cover rounded-full mr-3"
                                 />
                                 <span className="text-white">{user.username}</span>
                             </li>

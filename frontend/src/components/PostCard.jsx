@@ -190,7 +190,7 @@ const PostCard = ({ post }) => {
                             <img
                                 src={post.author.profilePicture?.secure_url || defaultIcon}
                                 alt="Profile"
-                                className="w-9 h-w-9 rounded-full mr-3"
+                                className="w-9 h-9 object-cover rounded-full mr-3"
                             />
                             <span className="font-semibold text-sm">{post.author.username}</span>
                         </Link>
